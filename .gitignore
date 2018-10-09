@@ -1,0 +1,11 @@
+logs/
+.metadata
+.recommenders
+*.iml
+.project
+.classpath
+build/
+target/
+.settings
+.idea/
+.DS_Store
