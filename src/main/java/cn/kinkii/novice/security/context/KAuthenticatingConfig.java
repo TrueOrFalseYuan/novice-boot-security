@@ -22,7 +22,7 @@ import java.util.List;
 @Setter
 public class KAuthenticatingConfig {
 
-  public static final String CONFIG_PREFIX = "newtank.k-security";
+  public static final String CONFIG_PREFIX = "novice.k-security";
 
   public static final String TOKEN_TYPE_JWT = "jwt";
   public static final String TOKEN_TYPE_UUID = "uuid";
