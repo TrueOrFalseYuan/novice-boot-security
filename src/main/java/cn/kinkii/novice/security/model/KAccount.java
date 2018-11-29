@@ -6,52 +6,63 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.security.Principal;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 
 
 @RequiredArgsConstructor
 @Getter
-public class KAccount implements UserDetails {
+public class KAccount implements UserDetails, Principal {
 
-  private final String id;
-  private final String username;
-  private final String encryptedPassword;
+    private final String id;
+    private final String username;
+    private final String encryptedPassword;
 
-  @Setter private Collection<? extends GrantedAuthority> authorities = new HashSet<>();
-  @Setter private boolean isSupervisor = false;
+    @Setter
+    private Collection<String> roleNames = new HashSet<>();
+    @Setter
+    private Collection<? extends GrantedAuthority> authorities = new HashSet<>();
+    @Setter
+    private boolean isSupervisor = false;
 
-  @Setter private boolean enabled = true;
-  @Setter private boolean accountExpired = false;
-  @Setter private boolean accountLocked = false;
-  @Setter private boolean passwordExpired = false;
+    @Setter
+    private boolean enabled = true;
+    @Setter
+    private boolean accountExpired = false;
+    @Setter
+    private boolean accountLocked = false;
+    @Setter
+    private boolean passwordExpired = false;
 
-  @Override
-  public Collection<? extends GrantedAuthority> getAuthorities() {
-    return authorities;
-  }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return authorities;
+    }
 
-  @Override
-  public String getPassword() {
-    return encryptedPassword;
-  }
+    @Override
+    public String getPassword() {
+        return encryptedPassword;
+    }
 
-  @Override
-  public boolean isAccountNonExpired() {
-    return !accountExpired;
-  }
+    @Override
+    public boolean isAccountNonExpired() {
+        return !accountExpired;
+    }
 
-  @Override
-  public boolean isAccountNonLocked() {
-    return !accountLocked;
-  }
+    @Override
+    public boolean isAccountNonLocked() {
+        return !accountLocked;
+    }
 
-  @Override
-  public boolean isCredentialsNonExpired() {
-    return !passwordExpired;
-  }
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return !passwordExpired;
+    }
 
-  public KAccountPrincipal toPrincipal() {
-    return new KAccountPrincipal(id, username, isSupervisor);
-  }
+    @Override
+    public String getName() {
+        return username;
+    }
 }

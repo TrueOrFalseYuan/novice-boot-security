@@ -1,7 +1,7 @@
 package cn.kinkii.novice.security.rememberme;
 
 import cn.kinkii.novice.security.i18n.KSecurityMessageUtils;
-import cn.kinkii.novice.security.model.KAccountPrincipal;
+import cn.kinkii.novice.security.model.KAccount;
 import cn.kinkii.novice.security.model.KClient;
 import cn.kinkii.novice.security.token.KRawTokenData;
 import cn.kinkii.novice.security.token.KRawTokenProcessor;
@@ -73,7 +73,7 @@ public class RememberKClientServices implements RememberMeServices {
             return;
         }
         KAuthenticatingSuccessToken successToken = (KAuthenticatingSuccessToken) auth;
-        Assert.notNull(successToken.getAccountPrincipal(), "The name of the successful token shouldn't be null!");
+        Assert.notNull(successToken.getPrincipal(), "The name of the successful token shouldn't be null!");
         Assert.notNull(successToken.getAuthorities(), "The authorities of the successful token shouldn't be empty!");
 
         Authentication authenticatingToken = successToken.getAuthenticatingToken();
@@ -85,9 +85,9 @@ public class RememberKClientServices implements RememberMeServices {
         Assert.notNull(clientContainer.getKClientDetails().getClient(), "The client details of the successful token shouldn't be null!");
 
         KClient client = clientContainer.getKClientDetails().getClient();
-        KAccountPrincipal principal = successToken.getAccountPrincipal();
+        KAccount kAccount = successToken.getAccountPrincipal();
 
-        KRawTokenData tokenData = new KRawTokenData(principal.getId(), principal.getUsername(), client.getClientId());
+        KRawTokenData tokenData = new KRawTokenData(kAccount.getId(), kAccount.getUsername(), client.getClientId());
         tokenData.setClientType(client.getClientType());
         tokenData.setClientVersion(client.getClientVersion());
 

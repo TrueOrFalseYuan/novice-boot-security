@@ -78,7 +78,7 @@ public class KAccountAuthProvider extends DaoAuthenticationProvider {
         KAccountAuthToken accountToken = (KAccountAuthToken) authentication;
 
         failureCounter.clear(accountToken.getUsername());
-        return new KAuthenticatingSuccessToken(kAccount.toPrincipal(), kAccount.getAuthorities(), accountToken);
+        return new KAuthenticatingSuccessToken(kAccount, kAccount.getAuthorities(), accountToken);
     }
 
     @Override

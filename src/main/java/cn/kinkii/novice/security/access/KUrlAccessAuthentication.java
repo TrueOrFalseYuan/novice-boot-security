@@ -1,6 +1,6 @@
 package cn.kinkii.novice.security.access;
 
-import cn.kinkii.novice.security.model.KAccountPrincipal;
+import cn.kinkii.novice.security.model.KAccount;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -16,37 +16,39 @@ import java.util.Collection;
 @Setter
 public class KUrlAccessAuthentication implements Authentication {
 
-  @NonNull private KAccountPrincipal accountPrincipal;
-  @NonNull private Collection<? extends GrantedAuthority> authorities;
+    @NonNull
+    private KAccount accountPrincipal;
+    @NonNull
+    private Collection<? extends GrantedAuthority> authorities;
 
-  @Override
-  public Object getCredentials() {
-    return null;
-  }
+    @Override
+    public Object getCredentials() {
+        return null;
+    }
 
-  @Override
-  public Object getDetails() {
-    return null;
-  }
+    @Override
+    public Object getDetails() {
+        return null;
+    }
 
-  @Override
-  public Object getPrincipal() {
-    return accountPrincipal;
-  }
+    @Override
+    public Object getPrincipal() {
+        return accountPrincipal;
+    }
 
-  @Override
-  public boolean isAuthenticated() {
-    return true;
-  }
+    @Override
+    public boolean isAuthenticated() {
+        return true;
+    }
 
-  @Override
-  public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-    Assert.isTrue(isAuthenticated, "KUrlAccessAuthentication is always authenticated!");
-  }
+    @Override
+    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+        Assert.isTrue(isAuthenticated, "KUrlAccessAuthentication is always authenticated!");
+    }
 
-  @Override
-  public String getName() {
-    return accountPrincipal.getUsername();
-  }
+    @Override
+    public String getName() {
+        return accountPrincipal.getName();
+    }
 }
 
