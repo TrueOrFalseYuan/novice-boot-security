@@ -11,6 +11,7 @@ import cn.kinkii.novice.security.token.KRawTokenProcessor;
 import cn.kinkii.novice.security.token.UuidTokenProcessor;
 import cn.kinkii.novice.security.web.KAccessDeniedHandler;
 import cn.kinkii.novice.security.web.KAuthenticationEntryPoint;
+import cn.kinkii.novice.security.web.KClientResponseBuilder;
 import cn.kinkii.novice.security.web.access.KAccessTokenProvider;
 import cn.kinkii.novice.security.web.auth.*;
 import cn.kinkii.novice.security.web.cache.GuavaKAccountCache;
@@ -54,6 +55,8 @@ public class KAuthenticatingConfigurer {
     protected UserCache _accountCache = null;
     protected KRawTokenProcessor _tokenProcessor = null;
     protected RememberMeServices _rememberServices = null;
+    //==============================================================================
+    protected KClientResponseBuilder _responseBuilder = null;
 
     //==============================================================================
     // init configurer
@@ -62,8 +65,12 @@ public class KAuthenticatingConfigurer {
         this._config = config;
         this._accountCache = buildAccountCache(config);
         this._tokenProcessor = buildTokenProcessor(config);
+        this._responseBuilder = buildResponseBuilder(this._tokenProcessor);
     }
 
+    //==============================================================================
+    // utils
+    //==============================================================================
     protected static KRawTokenProcessor buildTokenProcessor(KAuthenticatingConfig config) {
         if (KAuthenticatingConfig.TOKEN_TYPE_JWT.equals(config.getTokenType())) {
             return new JwtTokenProcessor(config.getTokenJwt());
@@ -71,6 +78,14 @@ public class KAuthenticatingConfigurer {
             return new UuidTokenProcessor(config.getTokenUuid());
         }
         throw new IllegalStateException("Unsupported token type! - " + config.getTokenType());
+    }
+
+    private static KClientResponseBuilder buildResponseBuilder(KRawTokenProcessor tokenProcessor) {
+        return new KClientResponseBuilder(tokenProcessor);
+    }
+
+    public KClientResponseBuilder globalResponseBuilder() {
+        return _responseBuilder;
     }
 
     //==============================================================================
@@ -205,10 +220,10 @@ public class KAuthenticatingConfigurer {
             // with default KAccountIgnoredLocker and KAuthIgnoredCounter
         } else if (KAccountAuthConfig.LOCKER_TYPE_GUAVA.equals(authConfig.getLockType())) {
             authProvider.locker(new KAccountGuavaLocker(authConfig.getLockSeconds()))
-                .failureCounter(new KAuthGuavaCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds()));
+                    .failureCounter(new KAuthGuavaCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds()));
         } else if (KAccountAuthConfig.LOCKER_TYPE_REDIS.equals(authConfig.getLockType())) {
             authProvider.locker(new KAccountRedisLocker(authConfig.getLockSeconds()))
-                .failureCounter(new KAuthRedisCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds()));
+                    .failureCounter(new KAuthRedisCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds()));
         } else {
             throw new IllegalArgumentException("Unsupported lock type! - " + authConfig.getLockType());
         }
@@ -217,15 +232,15 @@ public class KAuthenticatingConfigurer {
 
     public void configureHttpSecurity(HttpSecurity http) throws Exception {
         http.cors()
-            .configurationSource(buildCorsConfigurationSource())
-            .and()
-            .csrf()
-            .disable()
-            .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .rememberMe()
-            .rememberMeServices(buildRememberServices());
+                .configurationSource(buildCorsConfigurationSource())
+                .and()
+                .csrf()
+                .disable()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .rememberMe()
+                .rememberMeServices(buildRememberServices());
 
         if (_config.getPublicUrls() != null) {
             http.authorizeRequests().antMatchers(_config.getPublicUrls().toArray(new String[0])).permitAll();

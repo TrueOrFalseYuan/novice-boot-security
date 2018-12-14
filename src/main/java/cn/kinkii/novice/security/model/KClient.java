@@ -1,13 +1,16 @@
 package cn.kinkii.novice.security.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
+@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
 public class KClient {
-  private String clientId;
-  private String clientAddress;
-  private String clientType;
-  private String clientVersion;
+    @NonNull
+    private String clientId;
+    private String clientType;
+    private String clientVersion;
+    private String clientAddress;
 }

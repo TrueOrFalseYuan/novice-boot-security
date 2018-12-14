@@ -42,13 +42,12 @@ public class KClientDetails implements Serializable {
     }
 
     private static KClient obtainClient(HttpServletRequest request) {
-        KClient result = new KClient();
         String clientHeader = request.getHeader(KHeader.K_HEADER_CLIENT);
         if (!StringUtils.hasText(clientHeader)) {
             clientHeader = request.getParameter(KHeader.K_HEADER_CLIENT.toLowerCase());
         }
         if (!StringUtils.hasText(clientHeader)) {
-            return result;
+            return new KClient();
         }
         String clientType = null;
         String clientVersion = null;
@@ -71,12 +70,8 @@ public class KClientDetails implements Serializable {
                 }
             }
         }
-        result.setClientId(clientId);
-        result.setClientType(clientType);
-        result.setClientVersion(clientVersion);
-        result.setClientAddress(parseClientAddress(request));
 
-        return result;
+        return new KClient(clientId, clientType, clientVersion, parseClientAddress(request));
     }
 
     public String getClientId() {
