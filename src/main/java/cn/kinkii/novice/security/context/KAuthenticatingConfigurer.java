@@ -16,9 +16,13 @@ import cn.kinkii.novice.security.web.access.KAccessTokenProvider;
 import cn.kinkii.novice.security.web.auth.*;
 import cn.kinkii.novice.security.web.cache.GuavaKAccountCache;
 import cn.kinkii.novice.security.web.cache.RedisKAccountCache;
+import cn.kinkii.novice.security.web.counter.KAuthCounter;
 import cn.kinkii.novice.security.web.counter.KAuthGuavaCounter;
+import cn.kinkii.novice.security.web.counter.KAuthIgnoredCounter;
 import cn.kinkii.novice.security.web.counter.KAuthRedisCounter;
 import cn.kinkii.novice.security.web.locker.KAccountGuavaLocker;
+import cn.kinkii.novice.security.web.locker.KAccountIgnoredLocker;
+import cn.kinkii.novice.security.web.locker.KAccountLocker;
 import cn.kinkii.novice.security.web.locker.KAccountRedisLocker;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,6 +35,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserCache;
 import org.springframework.security.core.userdetails.cache.NullUserCache;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
@@ -55,6 +60,9 @@ public class KAuthenticatingConfigurer {
     protected UserCache _accountCache = null;
     protected KRawTokenProcessor _tokenProcessor = null;
     protected RememberMeServices _rememberServices = null;
+    protected PasswordEncoder _passwordEncoder = null;
+    protected KAccountLocker _accountLocker = null;
+    protected KAuthCounter _authCounter = null;
     //==============================================================================
     protected KClientResponseBuilder _responseBuilder = null;
 
@@ -64,7 +72,10 @@ public class KAuthenticatingConfigurer {
     public KAuthenticatingConfigurer(KAuthenticatingConfig config) {
         this._config = config;
         this._accountCache = buildAccountCache(config);
+        this._passwordEncoder = buildPasswordEncoder(config);
         this._tokenProcessor = buildTokenProcessor(config);
+        this._accountLocker = buildAccountLocker(config);
+        this._authCounter = buildAuthCounter(config);
         this._responseBuilder = buildResponseBuilder(this._tokenProcessor);
     }
 
@@ -107,6 +118,63 @@ public class KAuthenticatingConfigurer {
             return new RedisKAccountCache(config.getCacheRedis());
         }
         return new NullUserCache();
+    }
+
+    private static PasswordEncoder buildPasswordEncoder(KAuthenticatingConfig config) {
+        KAccountAuthConfig authConfig = config.getAuth();
+        Assert.hasText(authConfig.getPasswordEncoder(), "The password encoder config can't be empty!");
+        return KPasswordEncoderFactory.getInstance(authConfig.getPasswordEncoder());
+    }
+
+    private static KAuthCounter buildAuthCounter(KAuthenticatingConfig config) {
+        KAccountAuthConfig authConfig = config.getAuth();
+        Assert.hasText(authConfig.getLockType(), "The lock type config can't be empty!");
+        Assert.notNull(authConfig.getLockCountingSeconds(), "The lock counting seconds config can't be null!");
+        Assert.notNull(authConfig.getLockFrom(), "The lock limit config can't be null!");
+
+        if (KAccountAuthConfig.LOCKER_TYPE_NONE.equals(authConfig.getLockType())) {
+            return new KAuthIgnoredCounter();
+        } else if (KAccountAuthConfig.LOCKER_TYPE_GUAVA.equals(authConfig.getLockType())) {
+            return new KAuthGuavaCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds());
+        } else if (KAccountAuthConfig.LOCKER_TYPE_REDIS.equals(authConfig.getLockType())) {
+            return new KAuthRedisCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds());
+        } else {
+            throw new IllegalArgumentException("Unsupported lock type! - " + authConfig.getLockType());
+        }
+
+    }
+
+    private static KAccountLocker buildAccountLocker(KAuthenticatingConfig config) {
+        KAccountAuthConfig authConfig = config.getAuth();
+        Assert.hasText(authConfig.getLockType(), "The lock type config can't be empty!");
+        Assert.notNull(authConfig.getLockSeconds(), "The lock seconds config can't be null!");
+
+        if (KAccountAuthConfig.LOCKER_TYPE_NONE.equals(authConfig.getLockType())) {
+            return new KAccountIgnoredLocker();
+        } else if (KAccountAuthConfig.LOCKER_TYPE_GUAVA.equals(authConfig.getLockType())) {
+            return new KAccountGuavaLocker(authConfig.getLockSeconds());
+        } else if (KAccountAuthConfig.LOCKER_TYPE_REDIS.equals(authConfig.getLockType())) {
+            return new KAccountRedisLocker(authConfig.getLockSeconds());
+        } else {
+            throw new IllegalArgumentException("Unsupported lock type! - " + authConfig.getLockType());
+        }
+
+    }
+
+    public UserCache currentAccountCache() {
+        return _accountCache;
+    }
+
+    public PasswordEncoder currentPasswordEncoder() {
+        return _passwordEncoder;
+    }
+
+    public KAccountLocker currentAccountLocker() {
+        return _accountLocker;
+    }
+
+    public KAuthCounter currentAuthCounter() {
+        return _authCounter;
     }
 
     public KAuthenticatingConfigurer accountService(KAccountService accountService) {
@@ -194,40 +262,10 @@ public class KAuthenticatingConfigurer {
 
     private KAccountAuthProvider buildKAccountAuthProvider() {
         KAccountAuthProvider authProvider = new KAccountAuthProvider(currentAccountService()).userCache(_accountCache);
-
-        initPasswordEncoder(authProvider);
-        initLocker(authProvider);
+        authProvider.setPasswordEncoder(_passwordEncoder);
+        authProvider.locker(_accountLocker).failureCounter(_authCounter);
 
         return authProvider;
-    }
-
-    private void initPasswordEncoder(KAccountAuthProvider authProvider) {
-        KAccountAuthConfig authConfig = _config.getAuth();
-        Assert.hasText(authConfig.getPasswordEncoder(), "The password encoder config can't be empty!");
-        authProvider.setPasswordEncoder(KPasswordEncoderFactory.getInstance(authConfig.getPasswordEncoder()));
-    }
-
-    private void initLocker(KAccountAuthProvider authProvider) {
-        KAccountAuthConfig authConfig = _config.getAuth();
-        Assert.hasText(authConfig.getLockType(), "The lock type config can't be empty!");
-        // locker
-        Assert.notNull(authConfig.getLockSeconds(), "The lock seconds config can't be null!");
-        // counter
-        Assert.notNull(authConfig.getLockCountingSeconds(), "The lock counting seconds config can't be null!");
-        Assert.notNull(authConfig.getLockFrom(), "The lock limit config can't be null!");
-
-        if (KAccountAuthConfig.LOCKER_TYPE_NONE.equals(authConfig.getLockType())) {
-            // with default KAccountIgnoredLocker and KAuthIgnoredCounter
-        } else if (KAccountAuthConfig.LOCKER_TYPE_GUAVA.equals(authConfig.getLockType())) {
-            authProvider.locker(new KAccountGuavaLocker(authConfig.getLockSeconds()))
-                    .failureCounter(new KAuthGuavaCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds()));
-        } else if (KAccountAuthConfig.LOCKER_TYPE_REDIS.equals(authConfig.getLockType())) {
-            authProvider.locker(new KAccountRedisLocker(authConfig.getLockSeconds()))
-                    .failureCounter(new KAuthRedisCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds()));
-        } else {
-            throw new IllegalArgumentException("Unsupported lock type! - " + authConfig.getLockType());
-        }
-
     }
 
     public void configureHttpSecurity(HttpSecurity http) throws Exception {
