@@ -2,28 +2,16 @@ package cn.kinkii.novice.security.context;
 
 import cn.kinkii.novice.security.access.KUrlAccessDecisionVoter;
 import cn.kinkii.novice.security.cors.KClientCorsConfigurationSource;
-import cn.kinkii.novice.security.crypto.KPasswordEncoderFactory;
 import cn.kinkii.novice.security.rememberme.RememberKClientAuthFilter;
 import cn.kinkii.novice.security.rememberme.RememberKClientServices;
 import cn.kinkii.novice.security.service.KAccountService;
-import cn.kinkii.novice.security.token.JwtTokenProcessor;
-import cn.kinkii.novice.security.token.KRawTokenProcessor;
-import cn.kinkii.novice.security.token.UuidTokenProcessor;
 import cn.kinkii.novice.security.web.KAccessDeniedHandler;
 import cn.kinkii.novice.security.web.KAuthenticationEntryPoint;
-import cn.kinkii.novice.security.web.KClientResponseBuilder;
 import cn.kinkii.novice.security.web.access.KAccessTokenProvider;
-import cn.kinkii.novice.security.web.auth.*;
-import cn.kinkii.novice.security.web.cache.GuavaKAccountCache;
-import cn.kinkii.novice.security.web.cache.RedisKAccountCache;
-import cn.kinkii.novice.security.web.counter.KAuthCounter;
-import cn.kinkii.novice.security.web.counter.KAuthGuavaCounter;
-import cn.kinkii.novice.security.web.counter.KAuthIgnoredCounter;
-import cn.kinkii.novice.security.web.counter.KAuthRedisCounter;
-import cn.kinkii.novice.security.web.locker.KAccountGuavaLocker;
-import cn.kinkii.novice.security.web.locker.KAccountIgnoredLocker;
-import cn.kinkii.novice.security.web.locker.KAccountLocker;
-import cn.kinkii.novice.security.web.locker.KAccountRedisLocker;
+import cn.kinkii.novice.security.web.auth.KAccountAuthFilter;
+import cn.kinkii.novice.security.web.auth.KAccountAuthProvider;
+import cn.kinkii.novice.security.web.auth.KRefreshAuthFilter;
+import cn.kinkii.novice.security.web.auth.KRefreshAuthProvider;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.access.AccessDecisionManager;
@@ -33,9 +21,6 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserCache;
-import org.springframework.security.core.userdetails.cache.NullUserCache;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
@@ -52,51 +37,19 @@ import java.util.List;
 public class KAuthenticatingConfigurer {
 
     //==============================================================================
-    protected final KAuthenticatingConfig _config;
+    protected KAuthenticatingContext _context = null;
     //==============================================================================
     protected KAccountService _accountService = null;
     protected AuthenticationManager _authenticationManager = null;
     //==============================================================================
-    protected UserCache _accountCache = null;
-    protected KRawTokenProcessor _tokenProcessor = null;
     protected RememberMeServices _rememberServices = null;
-    protected PasswordEncoder _passwordEncoder = null;
-    protected KAccountLocker _accountLocker = null;
-    protected KAuthCounter _authCounter = null;
     //==============================================================================
-    protected KClientResponseBuilder _responseBuilder = null;
 
     //==============================================================================
     // init configurer
     //==============================================================================
-    public KAuthenticatingConfigurer(KAuthenticatingConfig config) {
-        this._config = config;
-        this._accountCache = buildAccountCache(config);
-        this._passwordEncoder = buildPasswordEncoder(config);
-        this._tokenProcessor = buildTokenProcessor(config);
-        this._accountLocker = buildAccountLocker(config);
-        this._authCounter = buildAuthCounter(config);
-        this._responseBuilder = buildResponseBuilder(this._tokenProcessor);
-    }
-
-    //==============================================================================
-    // utils
-    //==============================================================================
-    protected static KRawTokenProcessor buildTokenProcessor(KAuthenticatingConfig config) {
-        if (KAuthenticatingConfig.TOKEN_TYPE_JWT.equals(config.getTokenType())) {
-            return new JwtTokenProcessor(config.getTokenJwt());
-        } else if (KAuthenticatingConfig.TOKEN_TYPE_UUID.equals(config.getTokenType())) {
-            return new UuidTokenProcessor(config.getTokenUuid());
-        }
-        throw new IllegalStateException("Unsupported token type! - " + config.getTokenType());
-    }
-
-    private static KClientResponseBuilder buildResponseBuilder(KRawTokenProcessor tokenProcessor) {
-        return new KClientResponseBuilder(tokenProcessor);
-    }
-
-    public KClientResponseBuilder globalResponseBuilder() {
-        return _responseBuilder;
+    public KAuthenticatingConfigurer(KAuthenticatingContext context) {
+        this._context = context;
     }
 
     //==============================================================================
@@ -104,77 +57,11 @@ public class KAuthenticatingConfigurer {
     //==============================================================================
 
     protected RememberMeServices buildRememberServices() {
-        Assert.notNull(_tokenProcessor, "The token processor can't be null!");
+        Assert.notNull(_context.tokenProcessor(), "The token processor can't be null!");
         if (_rememberServices != null) {
             return _rememberServices;
         }
-        return new RememberKClientServices(_tokenProcessor);
-    }
-
-    protected static UserCache buildAccountCache(KAuthenticatingConfig config) {
-        if (KAuthenticatingConfig.CACHE_TYPE_GUAVA.equals(config.getCacheType())) {
-            return new GuavaKAccountCache(config.getCacheGuava());
-        } else if (KAuthenticatingConfig.CACHE_TYPE_REDIS.equals(config.getCacheType())) {
-            return new RedisKAccountCache(config.getCacheRedis());
-        }
-        return new NullUserCache();
-    }
-
-    private static PasswordEncoder buildPasswordEncoder(KAuthenticatingConfig config) {
-        KAccountAuthConfig authConfig = config.getAuth();
-        Assert.hasText(authConfig.getPasswordEncoder(), "The password encoder config can't be empty!");
-        return KPasswordEncoderFactory.getInstance(authConfig.getPasswordEncoder());
-    }
-
-    private static KAuthCounter buildAuthCounter(KAuthenticatingConfig config) {
-        KAccountAuthConfig authConfig = config.getAuth();
-        Assert.hasText(authConfig.getLockType(), "The lock type config can't be empty!");
-        Assert.notNull(authConfig.getLockCountingSeconds(), "The lock counting seconds config can't be null!");
-        Assert.notNull(authConfig.getLockFrom(), "The lock limit config can't be null!");
-
-        if (KAccountAuthConfig.LOCKER_TYPE_NONE.equals(authConfig.getLockType())) {
-            return new KAuthIgnoredCounter();
-        } else if (KAccountAuthConfig.LOCKER_TYPE_GUAVA.equals(authConfig.getLockType())) {
-            return new KAuthGuavaCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds());
-        } else if (KAccountAuthConfig.LOCKER_TYPE_REDIS.equals(authConfig.getLockType())) {
-            return new KAuthRedisCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds());
-        } else {
-            throw new IllegalArgumentException("Unsupported lock type! - " + authConfig.getLockType());
-        }
-
-    }
-
-    private static KAccountLocker buildAccountLocker(KAuthenticatingConfig config) {
-        KAccountAuthConfig authConfig = config.getAuth();
-        Assert.hasText(authConfig.getLockType(), "The lock type config can't be empty!");
-        Assert.notNull(authConfig.getLockSeconds(), "The lock seconds config can't be null!");
-
-        if (KAccountAuthConfig.LOCKER_TYPE_NONE.equals(authConfig.getLockType())) {
-            return new KAccountIgnoredLocker();
-        } else if (KAccountAuthConfig.LOCKER_TYPE_GUAVA.equals(authConfig.getLockType())) {
-            return new KAccountGuavaLocker(authConfig.getLockSeconds());
-        } else if (KAccountAuthConfig.LOCKER_TYPE_REDIS.equals(authConfig.getLockType())) {
-            return new KAccountRedisLocker(authConfig.getLockSeconds());
-        } else {
-            throw new IllegalArgumentException("Unsupported lock type! - " + authConfig.getLockType());
-        }
-
-    }
-
-    public UserCache currentAccountCache() {
-        return _accountCache;
-    }
-
-    public PasswordEncoder currentPasswordEncoder() {
-        return _passwordEncoder;
-    }
-
-    public KAccountLocker currentAccountLocker() {
-        return _accountLocker;
-    }
-
-    public KAuthCounter currentAuthCounter() {
-        return _authCounter;
+        return new RememberKClientServices(_context.tokenProcessor());
     }
 
     public KAuthenticatingConfigurer accountService(KAccountService accountService) {
@@ -208,11 +95,11 @@ public class KAuthenticatingConfigurer {
     }
 
     protected AccessDecisionManager buildAccessDecisionManager() {
-        return new AffirmativeBased(Arrays.asList(new WebExpressionVoter(), new KUrlAccessDecisionVoter().supervisorGranted(_config.isSupervisorGranted())));
+        return new AffirmativeBased(Arrays.asList(new WebExpressionVoter(), new KUrlAccessDecisionVoter().supervisorGranted(_context.config().isSupervisorGranted())));
     }
 
     protected CorsConfigurationSource buildCorsConfigurationSource() {
-        return new KClientCorsConfigurationSource(_config.getCors());
+        return new KClientCorsConfigurationSource(_context.config().getCors());
     }
 
     //==============================================================================
@@ -254,16 +141,16 @@ public class KAuthenticatingConfigurer {
         List<AuthenticationProvider> providers = new ArrayList<>();
 
         providers.add(buildKAccountAuthProvider());
-        providers.add(new KRefreshAuthProvider(currentAccountService(), _tokenProcessor).userCache(_accountCache));
-        providers.add(new KAccessTokenProvider(currentAccountService(), _tokenProcessor).userCache(_accountCache));
+        providers.add(new KRefreshAuthProvider(currentAccountService(), _context.tokenProcessor()).userCache(_context.accountCache()));
+        providers.add(new KAccessTokenProvider(currentAccountService(), _context.tokenProcessor()).userCache(_context.accountCache()));
 
         return providers;
     }
 
     private KAccountAuthProvider buildKAccountAuthProvider() {
-        KAccountAuthProvider authProvider = new KAccountAuthProvider(currentAccountService()).userCache(_accountCache);
-        authProvider.setPasswordEncoder(_passwordEncoder);
-        authProvider.locker(_accountLocker).failureCounter(_authCounter);
+        KAccountAuthProvider authProvider = new KAccountAuthProvider(currentAccountService()).userCache(_context.accountCache());
+        authProvider.setPasswordEncoder(_context.passwordEncoder());
+        authProvider.locker(_context.accountLocker()).failureCounter(_context.authCounter());
 
         return authProvider;
     }
@@ -280,8 +167,8 @@ public class KAuthenticatingConfigurer {
                 .rememberMe()
                 .rememberMeServices(buildRememberServices());
 
-        if (_config.getPublicUrls() != null) {
-            http.authorizeRequests().antMatchers(_config.getPublicUrls().toArray(new String[0])).permitAll();
+        if (_context.config().getPublicUrls() != null) {
+            http.authorizeRequests().antMatchers(_context.config().getPublicUrls().toArray(new String[0])).permitAll();
         }
         http.authorizeRequests().anyRequest().authenticated().accessDecisionManager(buildAccessDecisionManager());
         http.exceptionHandling().accessDeniedHandler(buildAuthenticationFailureHandler()).authenticationEntryPoint(buildAuthenticationEntryPoint());
