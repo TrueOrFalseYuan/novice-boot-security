@@ -9,6 +9,7 @@ public class KSecurityMessageSource extends ResourceBundleMessageSource {
 
     public KSecurityMessageSource() {
         this.setBasenames("cn.kinkii.novice.security.i18n.messages", "cn.kinkii.novice.security.i18n.responses");
+        this.setDefaultEncoding("utf-8");
     }
 
     public static MessageSourceAccessor getAccessor() {
