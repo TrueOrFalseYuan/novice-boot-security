@@ -99,7 +99,10 @@ public class KAuthenticatingContext {
         } else if (KAccountAuthConfig.LOCKER_TYPE_GUAVA.equals(authConfig.getLockType())) {
             return new KAuthGuavaCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds());
         } else if (KAccountAuthConfig.LOCKER_TYPE_REDIS.equals(authConfig.getLockType())) {
-            return new KAuthRedisCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds());
+            if (_redisConnectionFactory == null) {
+                throw new IllegalArgumentException("Please set redisConnectionFactory first!");
+            }
+            return new KAuthRedisCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds(), _redisConnectionFactory);
         } else {
             throw new IllegalArgumentException("Unsupported lock type! - " + authConfig.getLockType());
         }
@@ -116,7 +119,10 @@ public class KAuthenticatingContext {
         } else if (KAccountAuthConfig.LOCKER_TYPE_GUAVA.equals(authConfig.getLockType())) {
             return new KAccountGuavaLocker(authConfig.getLockSeconds());
         } else if (KAccountAuthConfig.LOCKER_TYPE_REDIS.equals(authConfig.getLockType())) {
-            return new KAccountRedisLocker(authConfig.getLockSeconds());
+            if (_redisConnectionFactory == null) {
+                throw new IllegalArgumentException("Please set redisConnectionFactory first!");
+            }
+            return new KAccountRedisLocker(authConfig.getLockSeconds(), _redisConnectionFactory);
         } else {
             throw new IllegalArgumentException("Unsupported lock type! - " + authConfig.getLockType());
         }
