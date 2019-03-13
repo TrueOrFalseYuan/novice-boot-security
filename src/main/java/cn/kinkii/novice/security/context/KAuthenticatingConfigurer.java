@@ -14,6 +14,7 @@ import cn.kinkii.novice.security.web.auth.KRefreshAuthFilter;
 import cn.kinkii.novice.security.web.auth.KRefreshAuthProvider;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -157,15 +158,15 @@ public class KAuthenticatingConfigurer {
 
     public void configureHttpSecurity(HttpSecurity http) throws Exception {
         http.cors()
-                .configurationSource(buildCorsConfigurationSource())
-                .and()
-                .csrf()
-                .disable()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .rememberMe()
-                .rememberMeServices(buildRememberServices());
+            .configurationSource(buildCorsConfigurationSource())
+            .and()
+            .csrf()
+            .disable()
+            .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .rememberMe()
+            .rememberMeServices(buildRememberServices());
 
         if (_context.config().getPublicUrls() != null) {
             http.authorizeRequests().antMatchers(_context.config().getPublicUrls().toArray(new String[0])).permitAll();

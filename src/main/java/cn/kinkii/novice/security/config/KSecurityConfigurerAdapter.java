@@ -9,6 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -50,8 +51,9 @@ public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAd
 
     @Bean(name = "kAuthenticatingContext")
     @DependsOn({"kAuthenticatingConfig"})
-    public KAuthenticatingContext getContextBean(@Autowired KAuthenticatingConfig kAuthenticatingConfig) {
-        return new KAuthenticatingContext(kAuthenticatingConfig);
+    public KAuthenticatingContext getContextBean(@Autowired KAuthenticatingConfig kAuthenticatingConfig,
+                                                 @Autowired(required = false) RedisConnectionFactory redisConnectionFactory) {
+        return new KAuthenticatingContext().preset(redisConnectionFactory).init(kAuthenticatingConfig);
     }
 
     @Bean(name = "kAuthenticatingConfigurer")

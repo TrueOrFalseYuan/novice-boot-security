@@ -9,9 +9,7 @@ import cn.kinkii.novice.security.token.UuidTokenConfig;
 import cn.kinkii.novice.security.web.auth.DefaultKAccountAuthConfig;
 import cn.kinkii.novice.security.web.auth.KAccountAuthConfig;
 import cn.kinkii.novice.security.web.cache.DefaultKAccountCacheConfig;
-import cn.kinkii.novice.security.web.cache.DefaultRedisKAccountCacheConfig;
 import cn.kinkii.novice.security.web.cache.KAccountCacheConfig;
-import cn.kinkii.novice.security.web.cache.RedisKAccountCacheConfig;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,8 +33,7 @@ public class KAuthenticatingConfig {
   private UuidTokenConfig tokenUuid = new DefaultUuidTokenConfig();
 
   private String cacheType = CACHE_TYPE_GUAVA;
-  private KAccountCacheConfig cacheGuava = new DefaultKAccountCacheConfig();
-  private RedisKAccountCacheConfig cacheRedis = new DefaultRedisKAccountCacheConfig();
+  private KAccountCacheConfig cacheConfig = new DefaultKAccountCacheConfig();
 
   private KAccountAuthConfig auth = new DefaultKAccountAuthConfig();
   private KClientCorsConfig cors = new DefaultKClientCorsConfig();

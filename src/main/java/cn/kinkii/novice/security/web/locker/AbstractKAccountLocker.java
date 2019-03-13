@@ -4,14 +4,16 @@ import lombok.Getter;
 
 public abstract class AbstractKAccountLocker implements KAccountLocker {
 
-  private static final int DEFAULT_LOCK_SECONDS = 3600;
-  @Getter protected int lockSeconds;
+    protected static final int DEFAULT_LOCK_SECONDS = 3600;
 
-  public AbstractKAccountLocker() {
-    this(DEFAULT_LOCK_SECONDS);
-  }
+    @Getter
+    protected int lockSeconds;
 
-  public AbstractKAccountLocker(int lockSeconds) {
-    this.lockSeconds = lockSeconds;
-  }
+    public AbstractKAccountLocker() {
+        this(DEFAULT_LOCK_SECONDS);
+    }
+
+    public AbstractKAccountLocker(int lockSeconds) {
+        this.lockSeconds = lockSeconds;
+    }
 }

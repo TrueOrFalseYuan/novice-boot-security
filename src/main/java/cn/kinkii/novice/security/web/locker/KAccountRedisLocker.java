@@ -1,23 +1,57 @@
 package cn.kinkii.novice.security.web.locker;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.Assert;
+
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
 public class KAccountRedisLocker extends AbstractKAccountLocker {
 
-  //TODO implement with redis
-  public KAccountRedisLocker() {
-    super();
-    throw new IllegalStateException("The KAccountRedisLocker hasn't been implemented yet! Please use guava locker instead.");
-  }
+    private static final String USER_LOCKER_PREFIX = "K_LOCKER_";
+    private RedisTemplate<String, Long> redisTemplate;
 
-  public KAccountRedisLocker(int lockSeconds) {
-    super(lockSeconds);
-    throw new IllegalStateException("The KAccountRedisLocker hasn't been implemented yet! Please use guava locker instead.");
-  }
+    //TODO implement with redis
+    public KAccountRedisLocker(RedisConnectionFactory redisConnectionFactory) {
+        this(DEFAULT_LOCK_SECONDS, redisConnectionFactory);
+    }
 
-  @Override
-  public void lock(String username, Long lockTime) {}
+    public KAccountRedisLocker(int lockSeconds, RedisConnectionFactory redisConnectionFactory) {
+        super(lockSeconds);
+        Assert.notNull(redisConnectionFactory, "The redisConnectionFactory can't be null!");
+        this.redisTemplate = buildRedisTemplate(redisConnectionFactory);
+    }
 
-  @Override
-  public Boolean isLocked(String username) {
-    return null;
-  }
+    @Override
+    public void lock(String username, Long lockTime) {
+        try {
+            log.info("User " + username + " locked for " + lockTime + " seconds!");
+            redisTemplate.opsForValue().set(buildLockerKey(username), lockTime, this.lockSeconds, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.error("Failed to lock the user " + username + "! - " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Boolean isLocked(String username) {
+        try {
+            return redisTemplate.opsForValue().get(buildLockerKey(username)) != null;
+        } catch (Exception e) {
+            log.error("Failed to check the lock state for " + username + "! - " + e.getMessage());
+            return false;
+        }
+    }
+
+    private static RedisTemplate<String, Long> buildRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<String, Long> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        redisTemplate.afterPropertiesSet();
+        return redisTemplate;
+    }
+
+    private static String buildLockerKey(String username) {
+        return USER_LOCKER_PREFIX + username;
+    }
 }

@@ -16,15 +16,17 @@ import cn.kinkii.novice.security.web.locker.KAccountGuavaLocker;
 import cn.kinkii.novice.security.web.locker.KAccountIgnoredLocker;
 import cn.kinkii.novice.security.web.locker.KAccountLocker;
 import cn.kinkii.novice.security.web.locker.KAccountRedisLocker;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.security.core.userdetails.UserCache;
 import org.springframework.security.core.userdetails.cache.NullUserCache;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.Assert;
 
+@SuppressWarnings("WeakerAccess")
 public class KAuthenticatingContext {
 
     //==============================================================================
-    protected final KAuthenticatingConfig _config;
+    protected KAuthenticatingConfig _config;
     //==============================================================================
     protected UserCache _accountCache;
     protected KRawTokenProcessor _tokenProcessor;
@@ -32,50 +34,62 @@ public class KAuthenticatingContext {
     protected KAccountLocker _accountLocker;
     protected KAuthCounter _authCounter;
     //==============================================================================
+    protected RedisConnectionFactory _redisConnectionFactory = null;
+    //==============================================================================
     protected KClientResponseBuilder _responseBuilder;
+    //==============================================================================
 
     //==============================================================================
     // init context
     //==============================================================================
-    public KAuthenticatingContext(KAuthenticatingConfig config) {
+    public KAuthenticatingContext preset(RedisConnectionFactory redisConnectionFactory) {
+        this._redisConnectionFactory = redisConnectionFactory;
+        return this;
+    }
+
+    public KAuthenticatingContext init(KAuthenticatingConfig config) {
         this._config = config;
-        this._accountCache = buildAccountCache(config);
-        this._passwordEncoder = buildPasswordEncoder(config);
-        this._tokenProcessor = buildTokenProcessor(config);
-        this._accountLocker = buildAccountLocker(config);
-        this._authCounter = buildAuthCounter(config);
-        this._responseBuilder = buildResponseBuilder(this._tokenProcessor);
+        this._accountCache = buildAccountCache();
+        this._passwordEncoder = buildPasswordEncoder();
+        this._tokenProcessor = buildTokenProcessor();
+        this._accountLocker = buildAccountLocker();
+        this._authCounter = buildAuthCounter();
+        this._responseBuilder = buildResponseBuilder();
+        return this;
     }
 
     //==============================================================================
     // utils
     //==============================================================================
-    protected static KRawTokenProcessor buildTokenProcessor(KAuthenticatingConfig config) {
-        if (KAuthenticatingConfig.TOKEN_TYPE_JWT.equals(config.getTokenType())) {
-            return new JwtTokenProcessor(config.getTokenJwt());
-        } else if (KAuthenticatingConfig.TOKEN_TYPE_UUID.equals(config.getTokenType())) {
-            return new UuidTokenProcessor(config.getTokenUuid());
+    private KRawTokenProcessor buildTokenProcessor() {
+        if (KAuthenticatingConfig.TOKEN_TYPE_JWT.equals(_config.getTokenType())) {
+            return new JwtTokenProcessor(_config.getTokenJwt());
+        } else if (KAuthenticatingConfig.TOKEN_TYPE_UUID.equals(_config.getTokenType())) {
+            return new UuidTokenProcessor(_config.getTokenUuid());
         }
-        throw new IllegalStateException("Unsupported token type! - " + config.getTokenType());
+        throw new IllegalStateException("Unsupported token type! - " + _config.getTokenType());
     }
 
-    protected static UserCache buildAccountCache(KAuthenticatingConfig config) {
-        if (KAuthenticatingConfig.CACHE_TYPE_GUAVA.equals(config.getCacheType())) {
-            return new GuavaKAccountCache(config.getCacheGuava());
-        } else if (KAuthenticatingConfig.CACHE_TYPE_REDIS.equals(config.getCacheType())) {
-            return new RedisKAccountCache(config.getCacheRedis());
+    private UserCache buildAccountCache() {
+        if (KAuthenticatingConfig.CACHE_TYPE_GUAVA.equals(_config.getCacheType())) {
+            return new GuavaKAccountCache(_config.getCacheConfig());
+        } else if (KAuthenticatingConfig.CACHE_TYPE_REDIS.equals(_config.getCacheType())) {
+            if (_redisConnectionFactory == null) {
+                throw new IllegalArgumentException("Please set redisConnectionFactory first!");
+            }
+            return new RedisKAccountCache(_config.getCacheConfig(), _redisConnectionFactory);
         }
         return new NullUserCache();
     }
 
-    private static PasswordEncoder buildPasswordEncoder(KAuthenticatingConfig config) {
-        KAccountAuthConfig authConfig = config.getAuth();
+    private PasswordEncoder buildPasswordEncoder() {
+        KAccountAuthConfig authConfig = _config.getAuth();
         Assert.hasText(authConfig.getPasswordEncoder(), "The password encoder config can't be empty!");
         return KPasswordEncoderFactory.getInstance(authConfig.getPasswordEncoder());
     }
 
-    private static KAuthCounter buildAuthCounter(KAuthenticatingConfig config) {
-        KAccountAuthConfig authConfig = config.getAuth();
+    private KAuthCounter buildAuthCounter() {
+        KAccountAuthConfig authConfig = _config.getAuth();
         Assert.hasText(authConfig.getLockType(), "The lock type config can't be empty!");
         Assert.notNull(authConfig.getLockCountingSeconds(), "The lock counting seconds config can't be null!");
         Assert.notNull(authConfig.getLockFrom(), "The lock limit config can't be null!");
@@ -92,8 +106,8 @@ public class KAuthenticatingContext {
 
     }
 
-    private static KAccountLocker buildAccountLocker(KAuthenticatingConfig config) {
-        KAccountAuthConfig authConfig = config.getAuth();
+    private KAccountLocker buildAccountLocker() {
+        KAccountAuthConfig authConfig = _config.getAuth();
         Assert.hasText(authConfig.getLockType(), "The lock type config can't be empty!");
         Assert.notNull(authConfig.getLockSeconds(), "The lock seconds config can't be null!");
 
@@ -109,8 +123,8 @@ public class KAuthenticatingContext {
 
     }
 
-    private static KClientResponseBuilder buildResponseBuilder(KRawTokenProcessor tokenProcessor) {
-        return new KClientResponseBuilder(tokenProcessor);
+    private KClientResponseBuilder buildResponseBuilder() {
+        return new KClientResponseBuilder(_tokenProcessor);
     }
 
     public KAuthenticatingConfig config() {
@@ -140,6 +154,5 @@ public class KAuthenticatingContext {
     public KAuthCounter authCounter() {
         return _authCounter;
     }
-
 
 }

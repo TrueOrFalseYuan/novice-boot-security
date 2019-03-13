@@ -70,7 +70,4 @@ public class KSecurityMessageUtils {
         return value;
     }
 
-    public static void main(String... args) {
-        System.out.println(KSecurityMessageUtils.getExceptionMessage(MissingClientDetailsException.class));
-    }
 }

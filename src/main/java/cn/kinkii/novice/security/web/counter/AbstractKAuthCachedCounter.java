@@ -8,8 +8,8 @@ import org.springframework.util.Assert;
 @Slf4j
 public abstract class AbstractKAuthCachedCounter implements KAuthCounter {
 
-    private static final int DEFAULT_COUNT_LIMIT = 10;
-    private static final int DEFAULT_COUNT_SECONDS = 300;
+    protected static final int DEFAULT_COUNT_LIMIT = 10;
+    protected static final int DEFAULT_COUNT_SECONDS = 300;
 
     @Getter
     protected int countLimit;

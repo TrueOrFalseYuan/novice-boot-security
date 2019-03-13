@@ -18,7 +18,7 @@ public class GuavaKAccountCache extends KAccountCache {
 
     public GuavaKAccountCache(KAccountCacheConfig config) {
         super(config);
-        userCache = CacheBuilder.newBuilder().initialCapacity(DEFAULT_INITIAL_CAPACITY).expireAfterWrite(config.getCacheSeconds(), TimeUnit.SECONDS).build();
+        userCache = CacheBuilder.newBuilder().initialCapacity(DEFAULT_INITIAL_CAPACITY).expireAfterAccess(config.getCacheSeconds(), TimeUnit.SECONDS).build();
     }
 
     @Override
