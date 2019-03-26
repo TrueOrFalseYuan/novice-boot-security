@@ -4,6 +4,9 @@ import cn.kinkii.novice.security.context.KAuthenticatingConfig;
 import cn.kinkii.novice.security.context.KAuthenticatingConfigurer;
 import cn.kinkii.novice.security.context.KAuthenticatingContext;
 import cn.kinkii.novice.security.service.KAccountService;
+import cn.kinkii.novice.security.web.auth.KAuthFailureAdditionalHandler;
+import cn.kinkii.novice.security.web.auth.KAuthSuccessAdditionalHandler;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -15,8 +18,10 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
+import java.util.List;
+
 @SuppressWarnings("RedundantThrows")
-public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter implements InitializingBean {
 
     @Autowired
     @Lazy
@@ -60,8 +65,15 @@ public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAd
     @DependsOn({"kAuthenticatingContext"})
     public KAuthenticatingConfigurer getConfigurerBean(@Autowired KAuthenticatingContext kAuthenticatingContext,
                                                        @Autowired KAccountService accountService,
-                                                       @Autowired AuthenticationManager authenticationManager) {
-        return new KAuthenticatingConfigurer(kAuthenticatingContext).accountService(accountService).authenticationManager(authenticationManager);
+                                                       @Autowired AuthenticationManager authenticationManager,
+                                                       List<KAuthFailureAdditionalHandler> failureAdditionalHandlers,
+                                                       List<KAuthSuccessAdditionalHandler> successAdditionalHandlers) {
+        return new KAuthenticatingConfigurer(kAuthenticatingContext).accountService(accountService).setAdditionalHandlers(failureAdditionalHandlers, successAdditionalHandlers).authenticationManager(authenticationManager);
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+
     }
 
 }

@@ -4,6 +4,7 @@ import cn.kinkii.novice.security.web.response.KClientResponse;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.lang.Assert;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -17,8 +18,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class KAuthenticatingSuccessHandler implements AuthenticationSuccessHandler {
+  @Setter
+  private List<KAuthSuccessAdditionalHandler> additionalHandlers = new ArrayList<>();
 
   private static ObjectMapper globalObjectMapper = new ObjectMapper();
 
@@ -45,7 +50,9 @@ public class KAuthenticatingSuccessHandler implements AuthenticationSuccessHandl
     }
     KClientResponse responseToken = ((KAuthenticatingSuccessToken) authentication).getKClientResponse();
     Assert.notNull(responseToken, "Please init the KClientResponse to response on successful authentication!");
-
+    if(additionalHandlers != null){
+      additionalHandlers.forEach(handler -> handler.handle(request, response, authentication));
+    }
     response.setStatus(HttpStatus.OK.value());
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     globalObjectMapper.writeValue(response.getWriter(), responseToken);
@@ -53,5 +60,9 @@ public class KAuthenticatingSuccessHandler implements AuthenticationSuccessHandl
     clearAuthenticationAttributes(request);
   }
 
+  public KAuthenticatingSuccessHandler addAdditionalHandler(KAuthSuccessAdditionalHandler handler){
+    additionalHandlers.add(handler);
+    return this;
+  }
 }
 

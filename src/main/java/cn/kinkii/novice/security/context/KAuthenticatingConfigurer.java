@@ -8,13 +8,9 @@ import cn.kinkii.novice.security.service.KAccountService;
 import cn.kinkii.novice.security.web.KAccessDeniedHandler;
 import cn.kinkii.novice.security.web.KAuthenticationEntryPoint;
 import cn.kinkii.novice.security.web.access.KAccessTokenProvider;
-import cn.kinkii.novice.security.web.auth.KAccountAuthFilter;
-import cn.kinkii.novice.security.web.auth.KAccountAuthProvider;
-import cn.kinkii.novice.security.web.auth.KRefreshAuthFilter;
-import cn.kinkii.novice.security.web.auth.KRefreshAuthProvider;
+import cn.kinkii.novice.security.web.auth.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -45,8 +41,9 @@ public class KAuthenticatingConfigurer {
     //==============================================================================
     protected RememberMeServices _rememberServices = null;
     //==============================================================================
+    protected List<KAuthFailureAdditionalHandler> failureHandlers;
+    protected List<KAuthSuccessAdditionalHandler> successHandlers;
 
-    //==============================================================================
     // init configurer
     //==============================================================================
     public KAuthenticatingConfigurer(KAuthenticatingContext context) {
@@ -63,6 +60,12 @@ public class KAuthenticatingConfigurer {
             return _rememberServices;
         }
         return new RememberKClientServices(_context.tokenProcessor());
+    }
+
+    public KAuthenticatingConfigurer setAdditionalHandlers(List<KAuthFailureAdditionalHandler> failureAdditionalHandlers, List<KAuthSuccessAdditionalHandler> successAdditionalHandlers) {
+        this.failureHandlers = failureAdditionalHandlers;
+        this.successHandlers = successAdditionalHandlers;
+        return this;
     }
 
     public KAuthenticatingConfigurer accountService(KAccountService accountService) {
@@ -123,6 +126,8 @@ public class KAuthenticatingConfigurer {
         KAccountAuthFilter accountAuthFilter = new KAccountAuthFilter();
         accountAuthFilter.setRememberMeServices(buildRememberServices());
         accountAuthFilter.setAuthenticationManager(currentAuthenticationManager());
+        accountAuthFilter.setAdditionalFailureHandlers(failureHandlers);
+        accountAuthFilter.setAdditionalSuccessHandlers(successHandlers);
         return accountAuthFilter;
     }
 
