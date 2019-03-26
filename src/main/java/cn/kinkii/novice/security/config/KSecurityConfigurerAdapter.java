@@ -21,7 +21,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import java.util.List;
 
 @SuppressWarnings("RedundantThrows")
-public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter implements InitializingBean {
+public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
     @Autowired
     @Lazy
@@ -69,11 +69,6 @@ public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAd
                                                        List<KAuthFailureAdditionalHandler> failureAdditionalHandlers,
                                                        List<KAuthSuccessAdditionalHandler> successAdditionalHandlers) {
         return new KAuthenticatingConfigurer(kAuthenticatingContext).accountService(accountService).setAdditionalHandlers(failureAdditionalHandlers, successAdditionalHandlers).authenticationManager(authenticationManager);
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-
     }
 
 }
