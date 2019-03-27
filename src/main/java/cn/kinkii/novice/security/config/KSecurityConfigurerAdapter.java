@@ -66,8 +66,8 @@ public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAd
     public KAuthenticatingConfigurer getConfigurerBean(@Autowired KAuthenticatingContext kAuthenticatingContext,
                                                        @Autowired KAccountService accountService,
                                                        @Autowired AuthenticationManager authenticationManager,
-                                                       List<KAuthFailureAdditionalHandler> failureAdditionalHandlers,
-                                                       List<KAuthSuccessAdditionalHandler> successAdditionalHandlers) {
+                                                       @Autowired(required = false) List<KAuthFailureAdditionalHandler> failureAdditionalHandlers,
+                                                       @Autowired(required = false) List<KAuthSuccessAdditionalHandler> successAdditionalHandlers) {
         return new KAuthenticatingConfigurer(kAuthenticatingContext).accountService(accountService).setAdditionalHandlers(failureAdditionalHandlers, successAdditionalHandlers).authenticationManager(authenticationManager);
     }
 
