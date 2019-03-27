@@ -22,8 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class KAuthenticatingSuccessHandler implements AuthenticationSuccessHandler {
-  @Setter
-  private List<KAuthSuccessAdditionalHandler> additionalHandlers = new ArrayList<>();
 
   private static ObjectMapper globalObjectMapper = new ObjectMapper();
 
@@ -32,6 +30,9 @@ public class KAuthenticatingSuccessHandler implements AuthenticationSuccessHandl
   }
 
   private Logger logger = LoggerFactory.getLogger(KAuthenticatingSuccessHandler.class);
+
+  @Setter
+  private List<KAuthSuccessAdditionalHandler> additionalHandlers = new ArrayList<>();
 
   // copy from SimpleUrlAuthenticationSuccessHandler
   private static void clearAuthenticationAttributes(HttpServletRequest request) {
