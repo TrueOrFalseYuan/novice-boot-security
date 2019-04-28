@@ -33,11 +33,13 @@ public class KAuthenticatingSuccessHandler implements AuthenticationSuccessHandl
     private List<KAuthSuccessAdditionalHandler> additionalHandlers = new ArrayList<>();
 
     public void setAdditionalHandlers(List<KAuthSuccessAdditionalHandler> additionalHandlers) {
-        Assert.notNull(additionalHandlers, "The additionalHandlers can't be null!");
         this.additionalHandlers = additionalHandlers;
     }
 
     public KAuthenticatingSuccessHandler addAdditionalHandler(KAuthSuccessAdditionalHandler handler) {
+        if (additionalHandlers == null) {
+            additionalHandlers = new ArrayList<>();
+        }
         additionalHandlers.add(handler);
         return this;
     }

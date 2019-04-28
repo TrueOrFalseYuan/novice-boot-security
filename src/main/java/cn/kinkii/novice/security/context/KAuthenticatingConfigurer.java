@@ -2,8 +2,10 @@ package cn.kinkii.novice.security.context;
 
 import cn.kinkii.novice.security.access.KUrlAccessDecisionVoter;
 import cn.kinkii.novice.security.cors.KClientCorsConfigurationSource;
+import cn.kinkii.novice.security.rememberme.RememberFailureHandler;
 import cn.kinkii.novice.security.rememberme.RememberKClientAuthFilter;
 import cn.kinkii.novice.security.rememberme.RememberKClientServices;
+import cn.kinkii.novice.security.rememberme.RememberSuccessHandler;
 import cn.kinkii.novice.security.service.KAccountService;
 import cn.kinkii.novice.security.web.KAccessDeniedHandler;
 import cn.kinkii.novice.security.web.KAuthenticationEntryPoint;
@@ -43,6 +45,10 @@ public class KAuthenticatingConfigurer {
     //==============================================================================
     protected List<KAuthSuccessAdditionalHandler> _authSuccessHandlers;
     protected List<KAuthFailureAdditionalHandler> _authFailureHandlers;
+    //==============================================================================
+    protected List<RememberSuccessHandler> _rememberSuccessHandlers;
+    protected List<RememberFailureHandler> _rememberFailureHandlers;
+    //==============================================================================
 
     // init configurer
     //==============================================================================
@@ -62,9 +68,9 @@ public class KAuthenticatingConfigurer {
         return new RememberKClientServices(_context.tokenProcessor());
     }
 
-    public KAuthenticatingConfigurer setAuthAdditionalHandlers(List<KAuthSuccessAdditionalHandler> successHandlers, List<KAuthFailureAdditionalHandler> failureHandlers) {
-        this._authSuccessHandlers = successHandlers;
-        this._authFailureHandlers = failureHandlers;
+    public KAuthenticatingConfigurer setRememberHandlers(List<RememberSuccessHandler> successHandlers, List<RememberFailureHandler> failureHandlers) {
+        this._rememberSuccessHandlers = successHandlers;
+        this._rememberFailureHandlers = failureHandlers;
         return this;
     }
 
@@ -81,6 +87,12 @@ public class KAuthenticatingConfigurer {
             throw new IllegalStateException("The KAccountService should be manual set!");
         }
         return _accountService;
+    }
+
+    public KAuthenticatingConfigurer setAuthAdditionalHandlers(List<KAuthSuccessAdditionalHandler> successHandlers, List<KAuthFailureAdditionalHandler> failureHandlers) {
+        this._authSuccessHandlers = successHandlers;
+        this._authFailureHandlers = failureHandlers;
+        return this;
     }
 
     public KAuthenticatingConfigurer authenticationManager(AuthenticationManager authenticationManager) {
@@ -118,7 +130,13 @@ public class KAuthenticatingConfigurer {
     }
 
     private RememberKClientAuthFilter buildRememberKClientAuthFilter() {
-        return new RememberKClientAuthFilter(currentAuthenticationManager(), buildRememberServices());
+        RememberMeServices rememberMeServices = buildRememberServices();
+        if (rememberMeServices instanceof RememberKClientServices) {
+            RememberKClientServices rememberKClientServices = ((RememberKClientServices) rememberMeServices);
+            rememberKClientServices.setSuccessHandlers(_rememberSuccessHandlers);
+            rememberKClientServices.setFailureHandlers(_rememberFailureHandlers);
+        }
+        return new RememberKClientAuthFilter(currentAuthenticationManager(), rememberMeServices);
     }
 
 

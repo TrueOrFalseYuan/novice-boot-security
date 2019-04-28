@@ -18,18 +18,22 @@ public class KAuthenticatingFailureHandler implements AuthenticationFailureHandl
     private List<KAuthFailureAdditionalHandler> additionalHandlers = new ArrayList<>();
 
     public void setAdditionalHandlers(List<KAuthFailureAdditionalHandler> additionalHandlers) {
-        Assert.notNull(additionalHandlers, "The additionalHandlers can't be null!");
         this.additionalHandlers = additionalHandlers;
     }
 
     public KAuthenticatingFailureHandler addAdditionalHandler(KAuthFailureAdditionalHandler handler) {
+        if (additionalHandlers == null) {
+            additionalHandlers = new ArrayList<>();
+        }
         additionalHandlers.add(handler);
         return this;
     }
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) throws IOException, ServletException {
-        additionalHandlers.forEach(handler -> handler.handle(request, response, e));
+        if (additionalHandlers != null) {
+            additionalHandlers.forEach(handler -> handler.handle(request, response, e));
+        }
         KAuthExceptionHandler.handle(request, response, e);
     }
 

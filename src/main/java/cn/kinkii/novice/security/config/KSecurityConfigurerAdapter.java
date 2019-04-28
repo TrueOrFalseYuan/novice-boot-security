@@ -3,6 +3,8 @@ package cn.kinkii.novice.security.config;
 import cn.kinkii.novice.security.context.KAuthenticatingConfig;
 import cn.kinkii.novice.security.context.KAuthenticatingConfigurer;
 import cn.kinkii.novice.security.context.KAuthenticatingContext;
+import cn.kinkii.novice.security.rememberme.RememberFailureHandler;
+import cn.kinkii.novice.security.rememberme.RememberSuccessHandler;
 import cn.kinkii.novice.security.service.KAccountService;
 import cn.kinkii.novice.security.web.auth.KAuthFailureAdditionalHandler;
 import cn.kinkii.novice.security.web.auth.KAuthSuccessAdditionalHandler;
@@ -67,8 +69,14 @@ public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAd
                                                        @Autowired KAccountService accountService,
                                                        @Autowired AuthenticationManager authenticationManager,
                                                        @Autowired(required = false) List<KAuthSuccessAdditionalHandler> successAdditionalHandlers,
-                                                       @Autowired(required = false) List<KAuthFailureAdditionalHandler> failureAdditionalHandlers) {
-        return new KAuthenticatingConfigurer(kAuthenticatingContext).accountService(accountService).setAuthAdditionalHandlers(successAdditionalHandlers, failureAdditionalHandlers).authenticationManager(authenticationManager);
+                                                       @Autowired(required = false) List<KAuthFailureAdditionalHandler> failureAdditionalHandlers,
+                                                       @Autowired(required = false) List<RememberSuccessHandler> rememberSuccessHandlers,
+                                                       @Autowired(required = false) List<RememberFailureHandler> rememberFailureHandlers) {
+        return new KAuthenticatingConfigurer(kAuthenticatingContext)
+                .accountService(accountService)
+                .setAuthAdditionalHandlers(successAdditionalHandlers, failureAdditionalHandlers)
+                .setRememberHandlers(rememberSuccessHandlers, rememberFailureHandlers)
+                .authenticationManager(authenticationManager);
     }
 
 }

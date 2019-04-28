@@ -39,11 +39,13 @@ public class RememberKClientServices implements RememberMeServices {
     private List<RememberSuccessHandler> successHandlers = new ArrayList<>();
 
     public void setSuccessHandlers(List<RememberSuccessHandler> successHandlers) {
-        Assert.notNull(successHandlers, "The successHandlers can't be null!");
         this.successHandlers = successHandlers;
     }
 
     public RememberKClientServices addSuccessHandler(RememberSuccessHandler handler) {
+        if (successHandlers == null) {
+            successHandlers = new ArrayList<>();
+        }
         successHandlers.add(handler);
         return this;
     }
@@ -51,11 +53,13 @@ public class RememberKClientServices implements RememberMeServices {
     private List<RememberFailureHandler> failureHandlers = new ArrayList<>();
 
     public void setFailureHandlers(List<RememberFailureHandler> failureHandlers) {
-        Assert.notNull(failureHandlers, "The failureHandlers can't be null!");
         this.failureHandlers = failureHandlers;
     }
 
     public RememberKClientServices addFailureHandler(RememberFailureHandler handler) {
+        if (failureHandlers == null) {
+            failureHandlers = new ArrayList<>();
+        }
         failureHandlers.add(handler);
         return this;
     }
@@ -93,7 +97,9 @@ public class RememberKClientServices implements RememberMeServices {
 
     @Override
     public void loginFail(HttpServletRequest request, HttpServletResponse response) {
-        failureHandlers.forEach(handler -> handler.handle(request, response));
+        if (failureHandlers != null) {
+            failureHandlers.forEach(handler -> handler.handle(request, response));
+        }
     }
 
     @Override
@@ -103,7 +109,9 @@ public class RememberKClientServices implements RememberMeServices {
             return;
         }
 
-        successHandlers.forEach(handler -> handler.handle(request, response, auth));
+        if (successHandlers != null) {
+            successHandlers.forEach(handler -> handler.handle(request, response, auth));
+        }
 
         KAuthenticatingSuccessToken successToken = (KAuthenticatingSuccessToken) auth;
         Assert.notNull(successToken.getPrincipal(), "The name of the successful token shouldn't be null!");
