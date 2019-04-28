@@ -41,8 +41,8 @@ public class KAuthenticatingConfigurer {
     //==============================================================================
     protected RememberMeServices _rememberServices = null;
     //==============================================================================
-    protected List<KAuthFailureAdditionalHandler> failureHandlers;
-    protected List<KAuthSuccessAdditionalHandler> successHandlers;
+    protected List<KAuthSuccessAdditionalHandler> _authSuccessHandlers;
+    protected List<KAuthFailureAdditionalHandler> _authFailureHandlers;
 
     // init configurer
     //==============================================================================
@@ -62,9 +62,9 @@ public class KAuthenticatingConfigurer {
         return new RememberKClientServices(_context.tokenProcessor());
     }
 
-    public KAuthenticatingConfigurer setAdditionalHandlers(List<KAuthFailureAdditionalHandler> failureAdditionalHandlers, List<KAuthSuccessAdditionalHandler> successAdditionalHandlers) {
-        this.failureHandlers = failureAdditionalHandlers;
-        this.successHandlers = successAdditionalHandlers;
+    public KAuthenticatingConfigurer setAuthAdditionalHandlers(List<KAuthSuccessAdditionalHandler> successHandlers, List<KAuthFailureAdditionalHandler> failureHandlers) {
+        this._authSuccessHandlers = successHandlers;
+        this._authFailureHandlers = failureHandlers;
         return this;
     }
 
@@ -126,8 +126,8 @@ public class KAuthenticatingConfigurer {
         KAccountAuthFilter accountAuthFilter = new KAccountAuthFilter();
         accountAuthFilter.setRememberMeServices(buildRememberServices());
         accountAuthFilter.setAuthenticationManager(currentAuthenticationManager());
-        accountAuthFilter.setAdditionalFailureHandlers(failureHandlers);
-        accountAuthFilter.setAdditionalSuccessHandlers(successHandlers);
+        accountAuthFilter.setAdditionalSuccessHandlers(_authSuccessHandlers);
+        accountAuthFilter.setAdditionalFailureHandlers(_authFailureHandlers);
         return accountAuthFilter;
     }
 
@@ -163,15 +163,15 @@ public class KAuthenticatingConfigurer {
 
     public void configureHttpSecurity(HttpSecurity http) throws Exception {
         http.cors()
-            .configurationSource(buildCorsConfigurationSource())
-            .and()
-            .csrf()
-            .disable()
-            .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .rememberMe()
-            .rememberMeServices(buildRememberServices());
+                .configurationSource(buildCorsConfigurationSource())
+                .and()
+                .csrf()
+                .disable()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .rememberMe()
+                .rememberMeServices(buildRememberServices());
 
         if (_context.config().getPublicUrls() != null) {
             http.authorizeRequests().antMatchers(_context.config().getPublicUrls().toArray(new String[0])).permitAll();
