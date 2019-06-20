@@ -2,10 +2,9 @@ package cn.kinkii.novice.security.context;
 
 import cn.kinkii.novice.security.access.KUrlAccessDecisionVoter;
 import cn.kinkii.novice.security.cors.KClientCorsConfigurationSource;
-import cn.kinkii.novice.security.rememberme.RememberFailureHandler;
 import cn.kinkii.novice.security.rememberme.RememberKClientAuthFilter;
 import cn.kinkii.novice.security.rememberme.RememberKClientServices;
-import cn.kinkii.novice.security.rememberme.RememberSuccessHandler;
+import cn.kinkii.novice.security.web.access.KAccessSuccessHandler;
 import cn.kinkii.novice.security.service.KAccountService;
 import cn.kinkii.novice.security.web.KAccessDeniedHandler;
 import cn.kinkii.novice.security.web.KAuthenticationEntryPoint;
@@ -43,11 +42,13 @@ public class KAuthenticatingConfigurer {
     //==============================================================================
     protected RememberMeServices _rememberServices = null;
     //==============================================================================
-    protected List<KAuthSuccessAdditionalHandler> _authSuccessHandlers;
-    protected List<KAuthFailureAdditionalHandler> _authFailureHandlers;
+    protected List<KAuthSuccessAdditionalHandler> _accountAuthSuccessHandlers;
+    protected List<KAuthFailureAdditionalHandler> _accountAuthFailureHandlers;
     //==============================================================================
-    protected List<RememberSuccessHandler> _rememberSuccessHandlers;
-    protected List<RememberFailureHandler> _rememberFailureHandlers;
+    protected List<KAuthSuccessAdditionalHandler> _refreshAuthSuccessHandlers;
+    protected List<KAuthFailureAdditionalHandler> _refreshAuthFailureHandlers;
+    //==============================================================================
+    protected List<KAccessSuccessHandler> _accessSuccessHandlers;
     //==============================================================================
 
     // init configurer
@@ -68,12 +69,6 @@ public class KAuthenticatingConfigurer {
         return new RememberKClientServices(_context.tokenProcessor());
     }
 
-    public KAuthenticatingConfigurer setRememberHandlers(List<RememberSuccessHandler> successHandlers, List<RememberFailureHandler> failureHandlers) {
-        this._rememberSuccessHandlers = successHandlers;
-        this._rememberFailureHandlers = failureHandlers;
-        return this;
-    }
-
     public KAuthenticatingConfigurer accountService(KAccountService accountService) {
         if (_accountService != null) {
             throw new IllegalStateException("The accountService has been set/loaded!");
@@ -89,9 +84,20 @@ public class KAuthenticatingConfigurer {
         return _accountService;
     }
 
-    public KAuthenticatingConfigurer setAuthAdditionalHandlers(List<KAuthSuccessAdditionalHandler> successHandlers, List<KAuthFailureAdditionalHandler> failureHandlers) {
-        this._authSuccessHandlers = successHandlers;
-        this._authFailureHandlers = failureHandlers;
+    public KAuthenticatingConfigurer setAccessHandlers(List<KAccessSuccessHandler> successHandlers) {
+        this._accessSuccessHandlers = successHandlers;
+        return this;
+    }
+
+    public KAuthenticatingConfigurer setAccountAuthAdditionalHandlers(List<KAuthSuccessAdditionalHandler> successHandlers, List<KAuthFailureAdditionalHandler> failureHandlers) {
+        this._accountAuthSuccessHandlers = successHandlers;
+        this._accountAuthFailureHandlers = failureHandlers;
+        return this;
+    }
+
+    public KAuthenticatingConfigurer setRefreshAuthAdditionalHandlers(List<KAuthSuccessAdditionalHandler> successHandlers, List<KAuthFailureAdditionalHandler> failureHandlers) {
+        this._refreshAuthSuccessHandlers = successHandlers;
+        this._refreshAuthFailureHandlers = failureHandlers;
         return this;
     }
 
@@ -130,13 +136,7 @@ public class KAuthenticatingConfigurer {
     }
 
     private RememberKClientAuthFilter buildRememberKClientAuthFilter() {
-        RememberMeServices rememberMeServices = buildRememberServices();
-        if (rememberMeServices instanceof RememberKClientServices) {
-            RememberKClientServices rememberKClientServices = ((RememberKClientServices) rememberMeServices);
-            rememberKClientServices.setSuccessHandlers(_rememberSuccessHandlers);
-            rememberKClientServices.setFailureHandlers(_rememberFailureHandlers);
-        }
-        return new RememberKClientAuthFilter(currentAuthenticationManager(), rememberMeServices);
+        return new RememberKClientAuthFilter(currentAuthenticationManager(), buildRememberServices());
     }
 
 
@@ -144,8 +144,8 @@ public class KAuthenticatingConfigurer {
         KAccountAuthFilter accountAuthFilter = new KAccountAuthFilter();
         accountAuthFilter.setRememberMeServices(buildRememberServices());
         accountAuthFilter.setAuthenticationManager(currentAuthenticationManager());
-        accountAuthFilter.setAdditionalSuccessHandlers(_authSuccessHandlers);
-        accountAuthFilter.setAdditionalFailureHandlers(_authFailureHandlers);
+        accountAuthFilter.setAdditionalSuccessHandlers(_accountAuthSuccessHandlers);
+        accountAuthFilter.setAdditionalFailureHandlers(_accountAuthFailureHandlers);
         return accountAuthFilter;
     }
 
@@ -153,6 +153,8 @@ public class KAuthenticatingConfigurer {
         KRefreshAuthFilter refreshAuthFilter = new KRefreshAuthFilter();
         refreshAuthFilter.setRememberMeServices(buildRememberServices());
         refreshAuthFilter.setAuthenticationManager(currentAuthenticationManager());
+        refreshAuthFilter.setAdditionalSuccessHandlers(_refreshAuthSuccessHandlers);
+        refreshAuthFilter.setAdditionalFailureHandlers(_refreshAuthFailureHandlers);
         return refreshAuthFilter;
     }
 
@@ -165,8 +167,8 @@ public class KAuthenticatingConfigurer {
         List<AuthenticationProvider> providers = new ArrayList<>();
 
         providers.add(buildKAccountAuthProvider());
-        providers.add(new KRefreshAuthProvider(currentAccountService(), _context.tokenProcessor()).userCache(_context.accountCache()));
-        providers.add(new KAccessTokenProvider(currentAccountService(), _context.tokenProcessor()).userCache(_context.accountCache()));
+        providers.add(buildKRefreshAuthProvider());
+        providers.add(buildKAccessTokenProvider());
 
         return providers;
     }
@@ -175,8 +177,20 @@ public class KAuthenticatingConfigurer {
         KAccountAuthProvider authProvider = new KAccountAuthProvider(currentAccountService()).userCache(_context.accountCache());
         authProvider.setPasswordEncoder(_context.passwordEncoder());
         authProvider.locker(_context.accountLocker()).failureCounter(_context.authCounter());
-
         return authProvider;
+    }
+
+    private KRefreshAuthProvider buildKRefreshAuthProvider() {
+        KRefreshAuthProvider refreshAuthProvider = new KRefreshAuthProvider(currentAccountService(), _context.tokenProcessor());
+        refreshAuthProvider.userCache(_context.accountCache());
+        return refreshAuthProvider;
+    }
+
+    private KAccessTokenProvider buildKAccessTokenProvider() {
+        KAccessTokenProvider accessTokenProvider = new KAccessTokenProvider(currentAccountService(), _context.tokenProcessor());
+        accessTokenProvider.userCache(_context.accountCache());
+        accessTokenProvider.setSuccessHandlers(_accessSuccessHandlers);
+        return accessTokenProvider;
     }
 
     public void configureHttpSecurity(HttpSecurity http) throws Exception {

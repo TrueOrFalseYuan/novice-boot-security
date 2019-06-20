@@ -11,13 +11,10 @@ import cn.kinkii.novice.security.web.KClientContainer;
 import cn.kinkii.novice.security.web.KClientDetails;
 import cn.kinkii.novice.security.web.KHeader;
 import cn.kinkii.novice.security.web.access.KAccessToken;
-import cn.kinkii.novice.security.web.auth.KAuthSuccessAdditionalHandler;
-import cn.kinkii.novice.security.web.auth.KAuthenticatingSuccessHandler;
 import cn.kinkii.novice.security.web.auth.KAuthenticatingSuccessToken;
 import cn.kinkii.novice.security.web.auth.KRefreshAuthToken;
 import cn.kinkii.novice.security.web.response.KClientResponse;
 import cn.kinkii.novice.security.web.response.KRawTokenResponse;
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -27,8 +24,6 @@ import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.List;
 
 public class RememberKClientServices implements RememberMeServices {
 
@@ -36,45 +31,17 @@ public class RememberKClientServices implements RememberMeServices {
 
     private final KRawTokenProcessor tokenProcessor;
 
-    private List<RememberSuccessHandler> successHandlers = new ArrayList<>();
-
-    public void setSuccessHandlers(List<RememberSuccessHandler> successHandlers) {
-        this.successHandlers = successHandlers;
-    }
-
-    public RememberKClientServices addSuccessHandler(RememberSuccessHandler handler) {
-        if (successHandlers == null) {
-            successHandlers = new ArrayList<>();
-        }
-        successHandlers.add(handler);
-        return this;
-    }
-
-    private List<RememberFailureHandler> failureHandlers = new ArrayList<>();
-
-    public void setFailureHandlers(List<RememberFailureHandler> failureHandlers) {
-        this.failureHandlers = failureHandlers;
-    }
-
-    public RememberKClientServices addFailureHandler(RememberFailureHandler handler) {
-        if (failureHandlers == null) {
-            failureHandlers = new ArrayList<>();
-        }
-        failureHandlers.add(handler);
-        return this;
-    }
-
-    public RememberKClientServices(KRawTokenProcessor tokenProcessor) {
-        Assert.notNull(tokenProcessor, "The token processor can't be null!");
-        this.tokenProcessor = tokenProcessor;
-    }
-
     private static String obtainRawAccessToken(HttpServletRequest request) {
         String result = request.getHeader(KHeader.K_HEADER_ACCESS_TOKEN);
         if (!StringUtils.hasText(result)) {
             result = request.getParameter(KHeader.K_HEADER_ACCESS_TOKEN.toLowerCase());
         }
         return result;
+    }
+
+    public RememberKClientServices(KRawTokenProcessor tokenProcessor) {
+        Assert.notNull(tokenProcessor, "The token processor can't be null!");
+        this.tokenProcessor = tokenProcessor;
     }
 
     @Override
@@ -97,9 +64,6 @@ public class RememberKClientServices implements RememberMeServices {
 
     @Override
     public void loginFail(HttpServletRequest request, HttpServletResponse response) {
-        if (failureHandlers != null) {
-            failureHandlers.forEach(handler -> handler.handle(request, response));
-        }
     }
 
     @Override
@@ -108,11 +72,7 @@ public class RememberKClientServices implements RememberMeServices {
             logger.info("Please use the RememberKClientServices with KAuthenticatingSuccessToken!");
             return;
         }
-
-        if (successHandlers != null) {
-            successHandlers.forEach(handler -> handler.handle(request, response, auth));
-        }
-
+        
         KAuthenticatingSuccessToken successToken = (KAuthenticatingSuccessToken) auth;
         Assert.notNull(successToken.getPrincipal(), "The name of the successful token shouldn't be null!");
         Assert.notNull(successToken.getAuthorities(), "The authorities of the successful token shouldn't be empty!");

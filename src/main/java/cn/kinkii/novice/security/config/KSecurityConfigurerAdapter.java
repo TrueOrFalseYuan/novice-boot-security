@@ -3,13 +3,12 @@ package cn.kinkii.novice.security.config;
 import cn.kinkii.novice.security.context.KAuthenticatingConfig;
 import cn.kinkii.novice.security.context.KAuthenticatingConfigurer;
 import cn.kinkii.novice.security.context.KAuthenticatingContext;
-import cn.kinkii.novice.security.rememberme.RememberFailureHandler;
-import cn.kinkii.novice.security.rememberme.RememberSuccessHandler;
+import cn.kinkii.novice.security.web.access.KAccessSuccessHandler;
 import cn.kinkii.novice.security.service.KAccountService;
 import cn.kinkii.novice.security.web.auth.KAuthFailureAdditionalHandler;
 import cn.kinkii.novice.security.web.auth.KAuthSuccessAdditionalHandler;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
@@ -68,14 +67,16 @@ public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAd
     public KAuthenticatingConfigurer getConfigurerBean(@Autowired KAuthenticatingContext kAuthenticatingContext,
                                                        @Autowired KAccountService accountService,
                                                        @Autowired AuthenticationManager authenticationManager,
-                                                       @Autowired(required = false) List<KAuthSuccessAdditionalHandler> successAdditionalHandlers,
-                                                       @Autowired(required = false) List<KAuthFailureAdditionalHandler> failureAdditionalHandlers,
-                                                       @Autowired(required = false) List<RememberSuccessHandler> rememberSuccessHandlers,
-                                                       @Autowired(required = false) List<RememberFailureHandler> rememberFailureHandlers) {
+                                                       @Qualifier("accountSuccessHandlers") @Autowired(required = false) List<KAuthSuccessAdditionalHandler> accountSuccessHandlers,
+                                                       @Qualifier("accountFailureHandlers") @Autowired(required = false) List<KAuthFailureAdditionalHandler> accountFailureHandlers,
+                                                       @Qualifier("refreshSuccessHandlers") @Autowired(required = false) List<KAuthSuccessAdditionalHandler> refreshSuccessHandlers,
+                                                       @Qualifier("refreshFailureHandlers") @Autowired(required = false) List<KAuthFailureAdditionalHandler> refreshFailureHandlers,
+                                                       @Autowired(required = false) List<KAccessSuccessHandler> accessSuccessHandlers) {
         return new KAuthenticatingConfigurer(kAuthenticatingContext)
                 .accountService(accountService)
-                .setAuthAdditionalHandlers(successAdditionalHandlers, failureAdditionalHandlers)
-                .setRememberHandlers(rememberSuccessHandlers, rememberFailureHandlers)
+                .setAccountAuthAdditionalHandlers(accountSuccessHandlers, accountFailureHandlers)
+                .setRefreshAuthAdditionalHandlers(refreshSuccessHandlers, refreshFailureHandlers)
+                .setAccessHandlers(accessSuccessHandlers)
                 .authenticationManager(authenticationManager);
     }
 

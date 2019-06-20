@@ -8,19 +8,17 @@ import java.util.List;
 
 public abstract class KAuthenticatingFilter<T extends Authentication> extends KClientAuthenticationFilter<T> {
 
-    protected KAuthenticatingSuccessHandler successHandler;
-    protected KAuthenticatingFailureHandler failureHandler;
+    protected KAuthenticatingSuccessHandler successHandler = new KAuthenticatingSuccessHandler();
+    protected KAuthenticatingFailureHandler failureHandler = new KAuthenticatingFailureHandler();
 
     public KAuthenticatingFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
         super(requiresAuthenticationRequestMatcher);
-        this.successHandler = new KAuthenticatingSuccessHandler();
-        this.failureHandler = new KAuthenticatingFailureHandler();
         this.setAuthenticationSuccessHandler(successHandler);
         this.setAuthenticationFailureHandler(failureHandler);
     }
 
-    public void setAdditionalFailureHandlers(List<KAuthFailureAdditionalHandler> handlers) {
-        failureHandler.setAdditionalHandlers(handlers);
+    public void setAdditionalFailureHandlers(List<KAuthFailureAdditionalHandler> failureHandlers) {
+        failureHandler.setAdditionalHandlers(failureHandlers);
     }
 
     public void setAdditionalSuccessHandlers(List<KAuthSuccessAdditionalHandler> successHandlers) {

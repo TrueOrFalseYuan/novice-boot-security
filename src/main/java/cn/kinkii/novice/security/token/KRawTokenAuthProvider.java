@@ -83,7 +83,6 @@ public abstract class KRawTokenAuthProvider implements AuthenticationProvider {
         }
     }
 
-
     private class KAccountAuthenticationChecks implements UserDetailsChecker {
 
         protected MessageSourceAccessor springMessages = SpringSecurityMessageSource.getAccessor();
