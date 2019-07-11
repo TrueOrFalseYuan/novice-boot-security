@@ -206,9 +206,11 @@ public class KAuthenticatingConfigurer {
                 .rememberMeServices(buildRememberServices());
 
         if (_context.config().getPublicUrls() != null) {
-            http.authorizeRequests().antMatchers(_context.config().getPublicUrls().toArray(new String[0])).permitAll();
+            http.authorizeRequests().antMatchers(_context.config().getPublicUrls().toArray(new String[0])).permitAll()
+                    .anyRequest().authenticated().accessDecisionManager(buildAccessDecisionManager());
+        } else {
+            http.authorizeRequests().anyRequest().authenticated().accessDecisionManager(buildAccessDecisionManager());
         }
-        http.authorizeRequests().anyRequest().authenticated().accessDecisionManager(buildAccessDecisionManager());
         http.exceptionHandling().accessDeniedHandler(buildAuthenticationFailureHandler()).authenticationEntryPoint(buildAuthenticationEntryPoint());
 
         List<KFilter> filters = buildFilters();

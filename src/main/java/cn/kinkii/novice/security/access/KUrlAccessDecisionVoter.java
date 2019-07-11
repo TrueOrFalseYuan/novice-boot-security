@@ -38,6 +38,9 @@ public class KUrlAccessDecisionVoter implements AccessDecisionVoter<FilterInvoca
 
     @Override
     public int vote(Authentication authentication, FilterInvocation filterInvocation, Collection<ConfigAttribute> collection) {
+        if (authentication.isAuthenticated()) {
+            return ACCESS_GRANTED;
+        }
         if (!(authentication instanceof KUrlAccessAuthentication)) {
             return ACCESS_ABSTAIN;
         }

@@ -11,6 +11,7 @@ import cn.kinkii.novice.security.web.locker.KAccountLockedException;
 import cn.kinkii.novice.security.web.locker.KAccountLocker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
@@ -51,6 +52,10 @@ public class KAccountAuthProvider extends DaoAuthenticationProvider {
     @Override
     protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
         Assert.isTrue((authentication instanceof KAccountAuthToken), "The authentication should be a KAccountAuthToken!");
+
+        if (userDetails.getPassword() == null) {
+            throw new BadCredentialsException(this.messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+        }
 
         super.additionalAuthenticationChecks(userDetails, authentication);
         KAccountAuthToken accountToken = (KAccountAuthToken) authentication;

@@ -1,6 +1,5 @@
 package cn.kinkii.novice.security.i18n;
 
-import cn.kinkii.novice.security.web.MissingClientDetailsException;
 import com.google.common.base.CaseFormat;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.NoSuchMessageException;
