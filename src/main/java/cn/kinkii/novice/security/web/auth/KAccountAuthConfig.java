@@ -23,7 +23,6 @@ public class KAccountAuthConfig {
   public static final String LOCKER_TYPE_GUAVA = "guava";
   public static final String LOCKER_TYPE_REDIS = "redis";
 
-
   private String lockType;
   private Integer lockSeconds;
   private Integer lockFrom;

@@ -28,6 +28,11 @@ public class KAuthenticatingConfig {
   public static final String CACHE_TYPE_GUAVA = "guava";
   public static final String CACHE_TYPE_REDIS = "redis";
 
+  public static final String AUTH_TYPE_ACCOUNT = "account";
+  public static final String AUTH_TYPE_UID = "uid";
+
+  private String authType = AUTH_TYPE_ACCOUNT;
+
   private String tokenType = TOKEN_TYPE_JWT;
   private JwtTokenConfig tokenJwt = new DefaultJwtTokenConfig();
   private UuidTokenConfig tokenUuid = new DefaultUuidTokenConfig();

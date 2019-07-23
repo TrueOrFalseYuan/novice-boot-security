@@ -6,7 +6,7 @@
     <artifactId>novice-boot-security</artifactId>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
-    <version>1.0.7-SNAPSHOT</version>
+    <version>1.1.1-SNAPSHOT</version>
     <name>novice-boot-security</name>
 
     <parent>

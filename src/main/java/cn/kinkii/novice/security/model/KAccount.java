@@ -11,14 +11,22 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-
-@RequiredArgsConstructor
 @Getter
 public class KAccount implements UserDetails, Principal {
 
-    private final String id;
-    private final String username;
-    private final String encryptedPassword;
+    private String id;
+    private String username;
+    private String encryptedPassword;
+
+    public KAccount(String id, String username) {
+        this(id, username, null);
+    }
+
+    public KAccount(String id, String username, String encryptedPassword) {
+        this.id = id;
+        this.username = username;
+        this.encryptedPassword = encryptedPassword;
+    }
 
     @Setter
     private Collection<String> roleNames = new HashSet<>();

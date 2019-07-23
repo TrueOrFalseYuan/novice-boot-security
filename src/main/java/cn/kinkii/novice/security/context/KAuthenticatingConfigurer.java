@@ -4,6 +4,7 @@ import cn.kinkii.novice.security.access.KUrlAccessDecisionVoter;
 import cn.kinkii.novice.security.cors.KClientCorsConfigurationSource;
 import cn.kinkii.novice.security.rememberme.RememberKClientAuthFilter;
 import cn.kinkii.novice.security.rememberme.RememberKClientServices;
+import cn.kinkii.novice.security.service.KCodeService;
 import cn.kinkii.novice.security.web.access.KAccessSuccessHandler;
 import cn.kinkii.novice.security.service.KAccountService;
 import cn.kinkii.novice.security.web.KAccessDeniedHandler;
@@ -38,6 +39,7 @@ public class KAuthenticatingConfigurer {
     protected KAuthenticatingContext _context = null;
     //==============================================================================
     protected KAccountService _accountService = null;
+    protected KCodeService _codeService = null;
     protected AuthenticationManager _authenticationManager = null;
     //==============================================================================
     protected RememberMeServices _rememberServices = null;
@@ -69,6 +71,21 @@ public class KAuthenticatingConfigurer {
         return new RememberKClientServices(_context.tokenProcessor());
     }
 
+    public KAuthenticatingConfigurer codeService(KCodeService codeService) {
+        if (_codeService != null) {
+            throw new IllegalStateException("The codeService has been set/loaded!");
+        }
+        this._codeService = codeService;
+        return this;
+    }
+
+    public KCodeService currentCodeService() {
+        if (_codeService == null) {
+            throw new IllegalStateException("The codeService should be manual set!");
+        }
+        return _codeService;
+    }
+
     public KAuthenticatingConfigurer accountService(KAccountService accountService) {
         if (_accountService != null) {
             throw new IllegalStateException("The accountService has been set/loaded!");
@@ -79,7 +96,7 @@ public class KAuthenticatingConfigurer {
 
     public KAccountService currentAccountService() {
         if (_accountService == null) {
-            throw new IllegalStateException("The KAccountService should be manual set!");
+            throw new IllegalStateException("The accountService should be manual set!");
         }
         return _accountService;
     }
@@ -165,8 +182,12 @@ public class KAuthenticatingConfigurer {
 
     protected List<AuthenticationProvider> buildProviders() {
         List<AuthenticationProvider> providers = new ArrayList<>();
-
-        providers.add(buildKAccountAuthProvider());
+        if (currentAccountService() != null) {
+            providers.add(buildKAccountAuthProvider());
+        }
+        if (currentCodeService() != null) {
+            providers.add(buildKCodeAuthProvider());
+        }
         providers.add(buildKRefreshAuthProvider());
         providers.add(buildKAccessTokenProvider());
 
@@ -178,6 +199,10 @@ public class KAuthenticatingConfigurer {
         authProvider.setPasswordEncoder(_context.passwordEncoder());
         authProvider.locker(_context.accountLocker()).failureCounter(_context.authCounter());
         return authProvider;
+    }
+
+    private KCodeAuthProvider buildKCodeAuthProvider() {
+        return new KCodeAuthProvider(currentCodeService());
     }
 
     private KRefreshAuthProvider buildKRefreshAuthProvider() {
