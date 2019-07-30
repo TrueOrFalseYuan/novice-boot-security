@@ -20,31 +20,29 @@ import java.util.List;
 @Setter
 public class KAuthenticatingConfig {
 
-  public static final String CONFIG_PREFIX = "novice.k-security";
+    public static final String CONFIG_PREFIX = "novice.k-security";
 
-  public static final String TOKEN_TYPE_JWT = "jwt";
-  public static final String TOKEN_TYPE_UUID = "uuid";
+    public static final String TOKEN_TYPE_JWT = "jwt";
+    public static final String TOKEN_TYPE_UUID = "uuid";
 
-  public static final String CACHE_TYPE_GUAVA = "guava";
-  public static final String CACHE_TYPE_REDIS = "redis";
+    public static final String CACHE_TYPE_GUAVA = "guava";
+    public static final String CACHE_TYPE_REDIS = "redis";
 
-  public static final String AUTH_TYPE_ACCOUNT = "account";
-  public static final String AUTH_TYPE_UID = "uid";
+    private Boolean authByAccount = true;
+    private Boolean authByCode = false;
 
-  private String authType = AUTH_TYPE_ACCOUNT;
+    private String tokenType = TOKEN_TYPE_JWT;
+    private JwtTokenConfig tokenJwt = new DefaultJwtTokenConfig();
+    private UuidTokenConfig tokenUuid = new DefaultUuidTokenConfig();
 
-  private String tokenType = TOKEN_TYPE_JWT;
-  private JwtTokenConfig tokenJwt = new DefaultJwtTokenConfig();
-  private UuidTokenConfig tokenUuid = new DefaultUuidTokenConfig();
+    private String cacheType = CACHE_TYPE_GUAVA;
+    private KAccountCacheConfig cacheConfig = new DefaultKAccountCacheConfig();
 
-  private String cacheType = CACHE_TYPE_GUAVA;
-  private KAccountCacheConfig cacheConfig = new DefaultKAccountCacheConfig();
+    private KAccountAuthConfig auth = new DefaultKAccountAuthConfig();
+    private KClientCorsConfig cors = new DefaultKClientCorsConfig();
 
-  private KAccountAuthConfig auth = new DefaultKAccountAuthConfig();
-  private KClientCorsConfig cors = new DefaultKClientCorsConfig();
-
-  private boolean supervisorGranted = true;
-  private List<String> publicUrls = new ArrayList<>();
-  private boolean singleTokenValid = true;
+    private boolean supervisorGranted = true;
+    private List<String> publicUrls = new ArrayList<>();
+    private boolean singleTokenValid = true;
 
 }

@@ -80,9 +80,6 @@ public class KAuthenticatingConfigurer {
     }
 
     public KCodeService currentCodeService() {
-        if (_codeService == null) {
-            throw new IllegalStateException("The codeService should be manual set!");
-        }
         return _codeService;
     }
 
@@ -182,14 +179,15 @@ public class KAuthenticatingConfigurer {
 
     protected List<AuthenticationProvider> buildProviders() {
         List<AuthenticationProvider> providers = new ArrayList<>();
-        if (currentAccountService() != null) {
+        if (_context.config().getAuthByAccount()) {
             providers.add(buildKAccountAuthProvider());
-        }
-        if (currentCodeService() != null) {
-            providers.add(buildKCodeAuthProvider());
         }
         providers.add(buildKRefreshAuthProvider());
         providers.add(buildKAccessTokenProvider());
+
+        if (_context.config().getAuthByCode() && currentCodeService() != null) {
+            providers.add(buildKCodeAuthProvider());
+        }
 
         return providers;
     }
@@ -231,7 +229,8 @@ public class KAuthenticatingConfigurer {
                 .rememberMeServices(buildRememberServices());
 
         if (_context.config().getPublicUrls() != null) {
-            http.authorizeRequests().antMatchers(_context.config().getPublicUrls().toArray(new String[0])).permitAll()
+            http.authorizeRequests()
+                    .antMatchers(_context.config().getPublicUrls().toArray(new String[0])).permitAll()
                     .anyRequest().authenticated().accessDecisionManager(buildAccessDecisionManager());
         } else {
             http.authorizeRequests().anyRequest().authenticated().accessDecisionManager(buildAccessDecisionManager());

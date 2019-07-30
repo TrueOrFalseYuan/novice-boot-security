@@ -1,6 +1,7 @@
 package cn.kinkii.novice.security.web.auth;
 
 import cn.kinkii.novice.security.model.KAccount;
+import cn.kinkii.novice.security.service.KAccountNotFoundException;
 import cn.kinkii.novice.security.service.KCodeInvalidException;
 import cn.kinkii.novice.security.service.KCodeService;
 import lombok.Getter;
@@ -75,7 +76,7 @@ public class KCodeAuthProvider implements AuthenticationProvider, InitializingBe
                 throw new InternalAuthenticationServiceException("KCodeService returned null, which is an interface contract violation");
             }
             return loadedUser;
-        } catch (KCodeInvalidException ex) {
+        } catch (KCodeInvalidException | KAccountNotFoundException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new InternalAuthenticationServiceException(ex.getMessage(), ex);

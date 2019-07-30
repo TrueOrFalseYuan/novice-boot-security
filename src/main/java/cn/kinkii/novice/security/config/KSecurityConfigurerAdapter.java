@@ -67,7 +67,7 @@ public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAd
     @DependsOn({"kAuthenticatingContext"})
     public KAuthenticatingConfigurer getConfigurerBean(@Autowired KAuthenticatingContext kAuthenticatingContext,
                                                        @Autowired AuthenticationManager authenticationManager,
-                                                       @Autowired(required = false) KAccountService accountService,
+                                                       @Autowired KAccountService accountService,
                                                        @Autowired(required = false) KCodeService codeService,
                                                        @Qualifier("accountSuccessHandlers") @Autowired(required = false) List<KAuthSuccessAdditionalHandler> accountSuccessHandlers,
                                                        @Qualifier("accountFailureHandlers") @Autowired(required = false) List<KAuthFailureAdditionalHandler> accountFailureHandlers,
