@@ -143,7 +143,13 @@ public class KAuthenticatingConfigurer {
     //==============================================================================
     protected List<KFilter> buildFilters() {
         List<KFilter> filters = new ArrayList<>();
-        filters.add(new KFilter(buildKAccountAuthFilter(), KFilter.Position.AFTER, AbstractPreAuthenticatedProcessingFilter.class));
+
+        if (_context.config().getAuthByAccount()) {
+            filters.add(new KFilter(buildKAccountAuthFilter(), KFilter.Position.AFTER, AbstractPreAuthenticatedProcessingFilter.class));
+        }
+        if (_context.config().getAuthByCode()) {
+            filters.add(new KFilter(buildKCodeAuthFilter(), KFilter.Position.AFTER, AbstractPreAuthenticatedProcessingFilter.class));
+        }
         filters.add(new KFilter(buildKRefreshAuthFilter(), KFilter.Position.AFTER, AbstractPreAuthenticatedProcessingFilter.class));
         filters.add(new KFilter(buildRememberKClientAuthFilter(), KFilter.Position.AT, RememberMeAuthenticationFilter.class));
         return filters;
@@ -161,6 +167,15 @@ public class KAuthenticatingConfigurer {
         accountAuthFilter.setAdditionalSuccessHandlers(_accountAuthSuccessHandlers);
         accountAuthFilter.setAdditionalFailureHandlers(_accountAuthFailureHandlers);
         return accountAuthFilter;
+    }
+
+    private KCodeAuthFilter buildKCodeAuthFilter() {
+        KCodeAuthFilter codeAuthFilter = new KCodeAuthFilter();
+        codeAuthFilter.setRememberMeServices(buildRememberServices());
+        codeAuthFilter.setAuthenticationManager(currentAuthenticationManager());
+        codeAuthFilter.setAdditionalSuccessHandlers(_accountAuthSuccessHandlers);
+        codeAuthFilter.setAdditionalFailureHandlers(_accountAuthFailureHandlers);
+        return codeAuthFilter;
     }
 
     private KRefreshAuthFilter buildKRefreshAuthFilter() {
@@ -182,12 +197,12 @@ public class KAuthenticatingConfigurer {
         if (_context.config().getAuthByAccount()) {
             providers.add(buildKAccountAuthProvider());
         }
+        if (_context.config().getAuthByCode()) {
+            providers.add(buildKCodeAuthProvider());
+        }
         providers.add(buildKRefreshAuthProvider());
         providers.add(buildKAccessTokenProvider());
 
-        if (_context.config().getAuthByCode() && currentCodeService() != null) {
-            providers.add(buildKCodeAuthProvider());
-        }
 
         return providers;
     }
