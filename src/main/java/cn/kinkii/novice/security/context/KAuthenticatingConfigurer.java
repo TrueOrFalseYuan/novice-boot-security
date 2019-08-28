@@ -131,7 +131,14 @@ public class KAuthenticatingConfigurer {
     }
 
     protected AccessDecisionManager buildAccessDecisionManager() {
-        return new AffirmativeBased(Arrays.asList(new WebExpressionVoter(), new KUrlAccessDecisionVoter().supervisorGranted(_context.config().isSupervisorGranted())));
+        return new AffirmativeBased(
+                Arrays.asList(
+                        new WebExpressionVoter(),
+                        new KUrlAccessDecisionVoter()
+                                .supervisorGranted(_context.config().isSupervisorGranted())
+                                .anonymousAllowed(_context.config().isAnonymousAllowed())
+                )
+        );
     }
 
     protected CorsConfigurationSource buildCorsConfigurationSource() {

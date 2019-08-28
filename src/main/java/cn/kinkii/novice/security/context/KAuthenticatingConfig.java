@@ -42,6 +42,7 @@ public class KAuthenticatingConfig {
     private KClientCorsConfig cors = new DefaultKClientCorsConfig();
 
     private boolean supervisorGranted = true;
+    private boolean anonymousAllowed = false;
     private List<String> publicUrls = new ArrayList<>();
     private boolean singleTokenValid = true;
 

@@ -4,6 +4,7 @@ import cn.kinkii.novice.security.model.KUrlAuthority;
 import lombok.Getter;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.FilterInvocation;
@@ -20,9 +21,16 @@ public class KUrlAccessDecisionVoter implements AccessDecisionVoter<FilterInvoca
 
     @Getter
     private boolean isSupervisorAlwaysGranted = true;
+    @Getter
+    private boolean isAnonymousAllowed = false;
 
     public KUrlAccessDecisionVoter supervisorGranted(boolean granted) {
         this.isSupervisorAlwaysGranted = granted;
+        return this;
+    }
+
+    public KUrlAccessDecisionVoter anonymousAllowed(boolean allowed) {
+        this.isAnonymousAllowed = allowed;
         return this;
     }
 
@@ -38,31 +46,36 @@ public class KUrlAccessDecisionVoter implements AccessDecisionVoter<FilterInvoca
 
     @Override
     public int vote(Authentication authentication, FilterInvocation filterInvocation, Collection<ConfigAttribute> collection) {
-        if (authentication.isAuthenticated()) {
-            return ACCESS_GRANTED;
-        }
-        if (!(authentication instanceof KUrlAccessAuthentication)) {
-            return ACCESS_ABSTAIN;
-        }
-
-        KUrlAccessAuthentication accessAuthentication = (KUrlAccessAuthentication) authentication;
-        if (isSupervisorAlwaysGranted && accessAuthentication.getAccountPrincipal().isSupervisor()) {
-            return ACCESS_GRANTED;
-        } else {
-            HttpServletRequest request = filterInvocation.getHttpRequest();
-            AntPathRequestMatcher urlMatcher;
-            for (GrantedAuthority ga : accessAuthentication.getAuthorities()) {
-                if (ga instanceof KUrlAuthority) {
-                    KUrlAuthority urlGA = (KUrlAuthority) ga;
-                    urlMatcher = new AntPathRequestMatcher(urlGA.getUrl());
-                    if (urlMatcher.matches(request)) {
-                        if (urlGA.getMethod() == null || urlGA.getMethod().trim().length() == 0 || urlGA.getMethod().equals(request.getMethod())) {
-                            return ACCESS_GRANTED;
+        if (authentication instanceof KUrlAccessAuthentication) {
+            if (authentication.isAuthenticated()) {
+                return ACCESS_GRANTED;
+            }
+            KUrlAccessAuthentication accessAuthentication = (KUrlAccessAuthentication) authentication;
+            if (isSupervisorAlwaysGranted && accessAuthentication.getAccountPrincipal().isSupervisor()) {
+                return ACCESS_GRANTED;
+            } else {
+                HttpServletRequest request = filterInvocation.getHttpRequest();
+                AntPathRequestMatcher urlMatcher;
+                for (GrantedAuthority ga : accessAuthentication.getAuthorities()) {
+                    if (ga instanceof KUrlAuthority) {
+                        KUrlAuthority urlGA = (KUrlAuthority) ga;
+                        urlMatcher = new AntPathRequestMatcher(urlGA.getUrl());
+                        if (urlMatcher.matches(request)) {
+                            if (urlGA.getMethod() == null || urlGA.getMethod().trim().length() == 0 || urlGA.getMethod().equals(request.getMethod())) {
+                                return ACCESS_GRANTED;
+                            }
                         }
                     }
                 }
             }
+            return ACCESS_DENIED;
+        } else {
+            if (authentication instanceof AnonymousAuthenticationToken) {
+                return isAnonymousAllowed ? ACCESS_GRANTED : ACCESS_DENIED;
+            } else {
+                return ACCESS_ABSTAIN;
+            }
         }
-        return ACCESS_DENIED;
+
     }
 }
