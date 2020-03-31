@@ -56,11 +56,10 @@ public class KAccountAuthProvider extends DaoAuthenticationProvider {
         if (userDetails.getPassword() == null) {
             throw new BadCredentialsException(this.messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
         }
-        super.additionalAuthenticationChecks(userDetails, authentication);
 
         KAccountAuthToken accountToken = (KAccountAuthToken) authentication;
         if (locker.isLocked(accountToken.getUsername())) {
-            logger.debug("The account '%s' has been locked at the moment!");
+            logger.debug("The account '%s' has been locked at moment!");
             throw new KAccountLockedException(KSecurityMessageUtils.getExceptionMessage(KAccountLockedException.class));
         }
         try {
@@ -71,6 +70,7 @@ public class KAccountAuthProvider extends DaoAuthenticationProvider {
             locker.lock(accountToken.getUsername());
             throw e;
         }
+        super.additionalAuthenticationChecks(userDetails, authentication);
     }
 
     @SuppressWarnings("unchecked")
