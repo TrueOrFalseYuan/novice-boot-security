@@ -11,18 +11,22 @@ public class KSecurityMessageUtils {
 
     private static MessageSourceAccessor messages = KSecurityMessageSource.getAccessor();
 
-    private static final String AUTH_EXCEPTION_MESSAGE = "k.security.exception.message";
-    private static final String AUTH_FAILURE_RESPONSE_CODE = "k.security.failure.response.code";
-    private static final String AUTH_FAILURE_RESPONSE_MESSAGE = "k.security.failure.response.message";
+    private static final String EXCEPTION_MESSAGE = "k.security.exception.message";
+
+    private static final String SUCCESS_RESPONSE_CODE = "k.security.success.response.code";
+    private static final String SUCCESS_RESPONSE_MESSAGE = "k.security.success.response.message";
+
+    private static final String ERROR_RESPONSE_CODE = "k.security.failure.response.code";
+    private static final String ERROR_RESPONSE_MESSAGE = "k.security.failure.response.message";
 
 
     public static String getExceptionMessage(Class<?> failedClass) {
-        return getExceptionMessage(failedClass, messages.getMessage(AUTH_EXCEPTION_MESSAGE));
+        return getExceptionMessage(failedClass, messages.getMessage(EXCEPTION_MESSAGE));
     }
 
     public static String getExceptionMessage(Class<?> failedClass, String defaultMessage) {
         String message = defaultMessage;
-        String messageKey = AUTH_EXCEPTION_MESSAGE + "." + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, failedClass.getSimpleName());
+        String messageKey = EXCEPTION_MESSAGE + "." + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, failedClass.getSimpleName());
         try {
             message = messages.getMessage(messageKey);
         } catch (NoSuchMessageException e) {
@@ -31,15 +35,21 @@ public class KSecurityMessageUtils {
         return message;
     }
 
-    public static String getResponseMessage(Throwable failed) {
-        return getValueByClass(AUTH_FAILURE_RESPONSE_MESSAGE, failed);
+    public static String getSuccessMessage() {
+        return messages.getMessage(SUCCESS_RESPONSE_MESSAGE);
     }
 
-
-    public static Integer getResponseCode(Throwable failed) {
-        return Integer.parseInt(getValueByClass(AUTH_FAILURE_RESPONSE_CODE, failed));
+    public static Integer getSuccessCode() {
+        return Integer.parseInt(messages.getMessage(SUCCESS_RESPONSE_CODE));
     }
 
+    public static String getErrorMessage(Throwable failed) {
+        return getValueByClass(ERROR_RESPONSE_MESSAGE, failed);
+    }
+
+    public static Integer getErrorCode(Throwable failed) {
+        return Integer.parseInt(getValueByClass(ERROR_RESPONSE_CODE, failed));
+    }
 
     private static String getValueByClass(String prefix, Throwable failed) {
         String value = null;

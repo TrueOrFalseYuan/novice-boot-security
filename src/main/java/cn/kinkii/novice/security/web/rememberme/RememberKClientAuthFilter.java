@@ -1,4 +1,4 @@
-package cn.kinkii.novice.security.rememberme;
+package cn.kinkii.novice.security.web.rememberme;
 
 import cn.kinkii.novice.security.core.KAuthExceptionHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ public class RememberKClientAuthFilter extends RememberMeAuthenticationFilter {
     protected void onUnsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
         try {
             KAuthExceptionHandler.handle(request, response, failed);
-        } catch (IOException | ServletException e) {
+        } catch (IOException e) {
             log.error("Failed to response for unsuccessful authentication! - " + e.getMessage(), failed);
         }
     }

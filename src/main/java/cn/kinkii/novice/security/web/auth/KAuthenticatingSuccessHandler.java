@@ -3,6 +3,7 @@ package cn.kinkii.novice.security.web.auth;
 import cn.kinkii.novice.security.web.response.KClientResponse;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class KAuthenticatingSuccessHandler implements AuthenticationSuccessHandler {
 
     private static ObjectMapper globalObjectMapper = new ObjectMapper();
@@ -27,8 +29,6 @@ public class KAuthenticatingSuccessHandler implements AuthenticationSuccessHandl
     static {
         globalObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
-
-    private Logger logger = LoggerFactory.getLogger(KAuthenticatingSuccessHandler.class);
 
     private List<KAuthSuccessAdditionalHandler> additionalHandlers = new ArrayList<>();
 
@@ -56,7 +56,7 @@ public class KAuthenticatingSuccessHandler implements AuthenticationSuccessHandl
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         if (!(authentication instanceof KAuthenticatingSuccessToken)) {
-            logger.info("Please use the KAuthenticatingSuccessHandler with KAuthenticatingToken!");
+            log.info("Please use the KAuthenticatingSuccessHandler with KAuthenticatingToken!");
             return;
         }
         KClientResponse responseToken = ((KAuthenticatingSuccessToken) authentication).getKClientResponse();

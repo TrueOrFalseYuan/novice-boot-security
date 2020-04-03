@@ -19,6 +19,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 
 import java.util.List;
 
@@ -69,6 +70,7 @@ public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAd
                                                        @Autowired AuthenticationManager authenticationManager,
                                                        @Autowired KAccountService accountService,
                                                        @Autowired(required = false) KCodeService codeService,
+                                                       @Qualifier("logoutHandlers") @Autowired(required = false) List<LogoutHandler> logoutHandlers,
                                                        @Qualifier("accountSuccessHandlers") @Autowired(required = false) List<KAuthSuccessAdditionalHandler> accountSuccessHandlers,
                                                        @Qualifier("accountFailureHandlers") @Autowired(required = false) List<KAuthFailureAdditionalHandler> accountFailureHandlers,
                                                        @Qualifier("refreshSuccessHandlers") @Autowired(required = false) List<KAuthSuccessAdditionalHandler> refreshSuccessHandlers,
@@ -80,6 +82,7 @@ public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAd
                 .setAccountAuthAdditionalHandlers(accountSuccessHandlers, accountFailureHandlers)
                 .setRefreshAuthAdditionalHandlers(refreshSuccessHandlers, refreshFailureHandlers)
                 .setAccessHandlers(accessSuccessHandlers)
+                .setLogoutHandlers(logoutHandlers)
                 .authenticationManager(authenticationManager);
     }
 

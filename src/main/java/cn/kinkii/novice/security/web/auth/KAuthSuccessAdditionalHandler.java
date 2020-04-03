@@ -8,4 +8,5 @@ import javax.servlet.http.HttpServletResponse;
 public interface KAuthSuccessAdditionalHandler {
 
     void handle(HttpServletRequest request, HttpServletResponse response, Authentication authentication);
+
 }
