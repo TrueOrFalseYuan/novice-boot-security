@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data(staticConstructor = "build")
-public class KAuthFailureResponse {
+public class KAuthResponse {
 
     @NonNull
     private Integer code;
@@ -17,7 +17,7 @@ public class KAuthFailureResponse {
 
     private Map<String, Object> values;
 
-    public KAuthFailureResponse addValue(String key, Object value) {
+    public KAuthResponse addValue(String key, Object value) {
         if (values == null) {
             values = new HashMap<>();
         }

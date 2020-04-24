@@ -66,7 +66,7 @@ public abstract class KRawTokenAuthProvider implements AuthenticationProvider {
                 throw new IllegalRawTokenException(KSecurityMessageUtils.getExceptionMessage(IllegalRawTokenException.class));
             }
             if (!tokenAuthentication.getClientId().equals(tokenData.getClientId())) {
-                logger.debug("unmatched client id! requested http header: " + tokenAuthentication.getClientId() + " / parsed refresh token: " + tokenData.getClientId());
+                logger.debug("unmatched client id! requested http header: " + tokenAuthentication.getClientId() + " / parsed token: " + tokenData.getClientId());
                 throw new IllegalRawTokenException(KSecurityMessageUtils.getExceptionMessage(IllegalRawTokenException.class));
             }
             UserDetails currentUser = null;

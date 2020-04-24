@@ -2,8 +2,10 @@ package cn.kinkii.novice.security.context;
 
 import cn.kinkii.novice.security.access.KUrlAccessDecisionVoter;
 import cn.kinkii.novice.security.cors.KClientCorsConfigurationSource;
-import cn.kinkii.novice.security.rememberme.RememberKClientAuthFilter;
-import cn.kinkii.novice.security.rememberme.RememberKClientServices;
+import cn.kinkii.novice.security.web.logout.KLogoutFilter;
+import cn.kinkii.novice.security.web.logout.KLogoutSuccessHandler;
+import cn.kinkii.novice.security.web.rememberme.RememberKClientAuthFilter;
+import cn.kinkii.novice.security.web.rememberme.RememberKClientServices;
 import cn.kinkii.novice.security.service.KCodeService;
 import cn.kinkii.novice.security.web.access.KAccessSuccessHandler;
 import cn.kinkii.novice.security.service.KAccountService;
@@ -11,6 +13,7 @@ import cn.kinkii.novice.security.web.KAccessDeniedHandler;
 import cn.kinkii.novice.security.web.KAuthenticationEntryPoint;
 import cn.kinkii.novice.security.web.access.KAccessTokenProvider;
 import cn.kinkii.novice.security.web.auth.*;
+import cn.kinkii.novice.security.web.logout.KLogoutClearCacheHandler;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.access.AccessDecisionManager;
@@ -22,6 +25,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
 import org.springframework.util.Assert;
@@ -30,6 +35,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import javax.servlet.Filter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings("UnusedAssignment")
@@ -51,6 +57,8 @@ public class KAuthenticatingConfigurer {
     protected List<KAuthFailureAdditionalHandler> _refreshAuthFailureHandlers;
     //==============================================================================
     protected List<KAccessSuccessHandler> _accessSuccessHandlers;
+    //==============================================================================
+    protected List<LogoutHandler> _logoutHandlers;
     //==============================================================================
 
     // init configurer
@@ -96,6 +104,11 @@ public class KAuthenticatingConfigurer {
             throw new IllegalStateException("The accountService should be manual set!");
         }
         return _accountService;
+    }
+
+    public KAuthenticatingConfigurer setLogoutHandlers(List<LogoutHandler> logoutHandlers) {
+        this._logoutHandlers = logoutHandlers;
+        return this;
     }
 
     public KAuthenticatingConfigurer setAccessHandlers(List<KAccessSuccessHandler> successHandlers) {
@@ -145,12 +158,22 @@ public class KAuthenticatingConfigurer {
         return new KClientCorsConfigurationSource(_context.config().getCors());
     }
 
+    protected KLogoutSuccessHandler buildLogoutSuccessHandler() {
+        return new KLogoutSuccessHandler();
+    }
+
+    @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
+    protected List<LogoutHandler> buildDefaultLogoutHandlers() {
+        return Arrays.asList(new KLogoutClearCacheHandler(_context));
+    }
+
     //==============================================================================
     // filter
     //==============================================================================
     protected List<KFilter> buildFilters() {
         List<KFilter> filters = new ArrayList<>();
 
+        filters.add(new KFilter(buildKLogoutFilter(), KFilter.Position.AT, LogoutFilter.class));
         if (_context.config().getAuthByAccount()) {
             filters.add(new KFilter(buildKAccountAuthFilter(), KFilter.Position.AFTER, AbstractPreAuthenticatedProcessingFilter.class));
         }
@@ -194,6 +217,14 @@ public class KAuthenticatingConfigurer {
         return refreshAuthFilter;
     }
 
+    private KLogoutFilter buildKLogoutFilter() {
+        List<LogoutHandler> handlers = buildDefaultLogoutHandlers();
+        if (_logoutHandlers != null && _logoutHandlers.size() > 0) {
+            handlers.addAll(_logoutHandlers);
+        }
+        return new KLogoutFilter(buildLogoutSuccessHandler(), handlers.toArray(new LogoutHandler[0]));
+    }
+
     //==============================================================================
     // provider
     //==============================================================================
@@ -209,7 +240,6 @@ public class KAuthenticatingConfigurer {
         }
         providers.add(buildKRefreshAuthProvider());
         providers.add(buildKAccessTokenProvider());
-
 
         return providers;
     }
@@ -258,7 +288,6 @@ public class KAuthenticatingConfigurer {
             http.authorizeRequests().anyRequest().authenticated().accessDecisionManager(buildAccessDecisionManager());
         }
         http.exceptionHandling().accessDeniedHandler(buildAuthenticationFailureHandler()).authenticationEntryPoint(buildAuthenticationEntryPoint());
-
         List<KFilter> filters = buildFilters();
         if (filters != null) {
             filters.forEach(kFilter -> {

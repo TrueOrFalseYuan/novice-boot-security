@@ -2,7 +2,6 @@ package cn.kinkii.novice.security.web.access;
 
 import cn.kinkii.novice.security.access.KUrlAccessAuthentication;
 import cn.kinkii.novice.security.model.KAccount;
-import cn.kinkii.novice.security.rememberme.RememberKClientServices;
 import cn.kinkii.novice.security.service.KAccountService;
 import cn.kinkii.novice.security.token.KRawTokenAuthProvider;
 import cn.kinkii.novice.security.token.KRawTokenAuthentication;

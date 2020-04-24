@@ -2,6 +2,7 @@ package cn.kinkii.novice.security.web.auth;
 
 import cn.kinkii.novice.security.core.KAuthExceptionHandler;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.util.Assert;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class KAuthenticatingFailureHandler implements AuthenticationFailureHandler {
 
     private List<KAuthFailureAdditionalHandler> additionalHandlers = new ArrayList<>();
@@ -36,7 +38,6 @@ public class KAuthenticatingFailureHandler implements AuthenticationFailureHandl
         }
         KAuthExceptionHandler.handle(request, response, e);
     }
-
 
 }
 

@@ -1,4 +1,4 @@
-package cn.kinkii.novice.security.rememberme;
+package cn.kinkii.novice.security.web.rememberme;
 
 import cn.kinkii.novice.security.i18n.KSecurityMessageUtils;
 import cn.kinkii.novice.security.model.KAccount;
