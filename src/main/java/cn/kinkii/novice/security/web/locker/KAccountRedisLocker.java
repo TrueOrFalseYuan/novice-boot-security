@@ -44,6 +44,11 @@ public class KAccountRedisLocker extends AbstractKAccountLocker {
         }
     }
 
+    @Override
+    public void unLock(String username) {
+
+    }
+
     private static RedisTemplate<String, Long> buildRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, Long> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);

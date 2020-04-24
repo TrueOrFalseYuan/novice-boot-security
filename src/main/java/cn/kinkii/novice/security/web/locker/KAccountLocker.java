@@ -12,4 +12,5 @@ public interface KAccountLocker {
 
   Boolean isLocked(String username);
 
+  void unLock(String username);
 }

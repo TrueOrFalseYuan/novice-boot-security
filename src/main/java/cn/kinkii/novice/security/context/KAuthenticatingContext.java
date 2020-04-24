@@ -97,12 +97,12 @@ public class KAuthenticatingContext {
         if (KAccountAuthConfig.LOCKER_TYPE_NONE.equals(authConfig.getLockType())) {
             return new KAuthIgnoredCounter();
         } else if (KAccountAuthConfig.LOCKER_TYPE_GUAVA.equals(authConfig.getLockType())) {
-            return new KAuthGuavaCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds());
+            return new KAuthGuavaCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds(), authConfig.getLockIgnoreAccount());
         } else if (KAccountAuthConfig.LOCKER_TYPE_REDIS.equals(authConfig.getLockType())) {
             if (_redisConnectionFactory == null) {
                 throw new IllegalArgumentException("Please set redisConnectionFactory first!");
             }
-            return new KAuthRedisCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds(), _redisConnectionFactory);
+            return new KAuthRedisCounter(authConfig.getLockFrom(), authConfig.getLockCountingSeconds(), authConfig.getLockIgnoreAccount(), _redisConnectionFactory);
         } else {
             throw new IllegalArgumentException("Unsupported lock type! - " + authConfig.getLockType());
         }

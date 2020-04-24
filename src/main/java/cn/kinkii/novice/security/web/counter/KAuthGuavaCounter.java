@@ -16,8 +16,8 @@ public class KAuthGuavaCounter extends AbstractKAuthCachedCounter {
     authCache = CacheBuilder.newBuilder().initialCapacity(DEFAULT_INITIAL_CACHE).expireAfterWrite(this.countSeconds, TimeUnit.SECONDS).build();
   }
 
-  public KAuthGuavaCounter(int countLimit, int countSeconds) {
-    super(countLimit, countSeconds);
+  public KAuthGuavaCounter(int countLimit, int countSeconds,String lockIgnoreAccount) {
+    super(countLimit, countSeconds, lockIgnoreAccount);
     authCache = CacheBuilder.newBuilder().initialCapacity(DEFAULT_INITIAL_CACHE).expireAfterWrite(this.countSeconds, TimeUnit.SECONDS).build();
   }
 

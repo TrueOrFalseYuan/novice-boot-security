@@ -23,9 +23,11 @@ public class KAccountAuthConfig {
   public static final String LOCKER_TYPE_GUAVA = "guava";
   public static final String LOCKER_TYPE_REDIS = "redis";
 
+  public static final String LOCK_IGNORE_ACCOUNT = "admin";
+
   private String lockType;
   private Integer lockSeconds;
   private Integer lockFrom;
   private Integer lockCountingSeconds;
-
+  private String lockIgnoreAccount = LOCK_IGNORE_ACCOUNT;
 }

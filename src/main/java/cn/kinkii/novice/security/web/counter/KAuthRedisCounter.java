@@ -15,11 +15,11 @@ public class KAuthRedisCounter extends AbstractKAuthCachedCounter {
 
     //TODO implement with redis
     public KAuthRedisCounter(RedisConnectionFactory redisConnectionFactory) {
-        this(DEFAULT_COUNT_LIMIT, DEFAULT_COUNT_SECONDS, redisConnectionFactory);
+        this(DEFAULT_COUNT_LIMIT, DEFAULT_COUNT_SECONDS, null, redisConnectionFactory);
     }
 
-    public KAuthRedisCounter(int countLimit, int countSeconds, RedisConnectionFactory redisConnectionFactory) {
-        super(countLimit, countSeconds);
+    public KAuthRedisCounter(int countLimit, int countSeconds, String lockIgnoreAccount, RedisConnectionFactory redisConnectionFactory) {
+        super(countLimit, countSeconds, lockIgnoreAccount);
         Assert.notNull(redisConnectionFactory, "The redisConnectionFactory can't be null!");
         this.redisTemplate = buildRedisTemplate(redisConnectionFactory);
     }
