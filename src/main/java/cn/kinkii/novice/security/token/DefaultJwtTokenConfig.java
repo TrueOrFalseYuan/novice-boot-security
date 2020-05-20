@@ -6,9 +6,9 @@ import org.apache.commons.text.RandomStringGenerator;
 
 public class DefaultJwtTokenConfig extends JwtTokenConfig {
 
-    private static final int DEFAULT_ACCESS_EXPIRE_SECONDS = 86400; //1 hour
+    private static final int DEFAULT_ACCESS_EXPIRE_SECONDS = 3600; //1 hour
     private static final int DEFAULT_REFRESH_EXPIRE_SECONDS = 604800; // 1 week
-    private static final int DEFAULT_REFRESH_ON_REMAIN_SECONDS = 86400; //1 hour, won't take effect when less than or equal to zero
+    private static final int DEFAULT_REFRESH_ON_REMAIN_SECONDS = 3600; //1 hour, won't take effect when less than or equal to zero
 
     private static final String DEFAULT_TOKEN_ISSUER = "K-Security";
     private static final String DEFAULT_SIGN_ALGORITHM = "HS512";
