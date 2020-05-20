@@ -10,4 +10,6 @@ public class KAccountIgnoredLocker implements KAccountLocker {
     return false;
   }
 
+  @Override
+  public void unLock(String username) {}
 }
