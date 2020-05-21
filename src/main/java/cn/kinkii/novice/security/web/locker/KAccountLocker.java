@@ -4,13 +4,14 @@ import java.util.Date;
 
 public interface KAccountLocker {
 
-  void lock(String username, Long lockTime);
+    void lock(String username, Long lockTime);
 
-  default void lock(String username) {
-    lock(username, new Date().getTime());
-  }
+    default void lock(String username) {
+        lock(username, new Date().getTime());
+    }
 
-  Boolean isLocked(String username);
+    void unlock(String username);
 
-  void unLock(String username);
+    Boolean isLocked(String username);
+
 }

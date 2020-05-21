@@ -41,9 +41,8 @@ public class KAuthenticatingConfig {
     private KAccountAuthConfig auth = new DefaultKAccountAuthConfig();
     private KClientCorsConfig cors = new DefaultKClientCorsConfig();
 
-    private boolean supervisorGranted = true;
-    private boolean anonymousAllowed = false;
+    private boolean supervisorGranted = true; // grant supervisor all permission
+    private boolean anonymousAllowed = false; // allow anonymous user to access
     private List<String> publicUrls = new ArrayList<>();
-    private boolean singleTokenValid = true;
 
 }

@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserCache;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.Assert;
 
 public class KAccountAuthProvider extends DaoAuthenticationProvider {
@@ -26,6 +27,8 @@ public class KAccountAuthProvider extends DaoAuthenticationProvider {
 
     private KAccountLocker locker = new KAccountIgnoredLocker();
     private KAuthCounter failureCounter = new KAuthIgnoredCounter();
+
+    private boolean lockSupervisor = true;
 
     public KAccountAuthProvider(KAccountService accountService) {
         Assert.notNull(accountService, "The userDetailsService for KAccountAuthProvider can't be null!");
@@ -44,14 +47,27 @@ public class KAccountAuthProvider extends DaoAuthenticationProvider {
         return this;
     }
 
+    public KAccountAuthProvider lockSupervisor(boolean lockSupervisor) {
+        this.lockSupervisor = lockSupervisor;
+        return this;
+    }
+
     public KAccountAuthProvider userCache(UserCache cache) {
         setUserCache(cache);
+        return this;
+    }
+
+    public KAccountAuthProvider passwordEncoder(PasswordEncoder passwordEncoder) {
+        setPasswordEncoder(passwordEncoder);
         return this;
     }
 
     @Override
     protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
         Assert.isTrue((authentication instanceof KAccountAuthToken), "The authentication should be a KAccountAuthToken!");
+        Assert.isTrue((userDetails instanceof KAccount), "The UserDetails should be a KAccount!");
+
+        KAccount kAccount = (KAccount) userDetails;
 
         if (userDetails.getPassword() == null) {
             throw new BadCredentialsException(this.messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
@@ -62,13 +78,15 @@ public class KAccountAuthProvider extends DaoAuthenticationProvider {
             logger.debug("The account '%s' has been locked at moment!");
             throw new KAccountLockedException(KSecurityMessageUtils.getExceptionMessage(KAccountLockedException.class));
         }
-        try {
-            logger.debug(String.format("The account '%s' has been auth failure %d time(s)!", accountToken.getUsername(), failureCounter.get(accountToken.getUsername())));
-            failureCounter.count(accountToken.getUsername());
-        } catch (KAuthLimitExceededException e) {
-            logger.debug(String.format("Locking the account '%s'!", accountToken.getUsername()));
-            locker.lock(accountToken.getUsername());
-            throw e;
+        if (!kAccount.isAccountIgnoreLock() || (kAccount.isSupervisor() && lockSupervisor)) {
+            try {
+                logger.debug(String.format("The account '%s' has been auth failure %d time(s)!", accountToken.getUsername(), failureCounter.get(accountToken.getUsername())));
+                failureCounter.count(accountToken.getUsername());
+            } catch (KAuthLimitExceededException e) {
+                logger.debug(String.format("Locking the account '%s'!", accountToken.getUsername()));
+                locker.lock(accountToken.getUsername());
+                throw e;
+            }
         }
         super.additionalAuthenticationChecks(userDetails, authentication);
     }

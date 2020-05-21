@@ -27,12 +27,13 @@ public class KAccountGuavaLocker extends AbstractKAccountLocker {
   }
 
   @Override
+  public void unlock(String username) {
+    lockingKAccountCache.invalidate(username);
+  }
+
+  @Override
   public Boolean isLocked(String username) {
     return lockingKAccountCache.getIfPresent(username) != null;
   }
 
-  @Override
-  public void unLock(String username) {
-      lockingKAccountCache.invalidate(username);
-  }
 }

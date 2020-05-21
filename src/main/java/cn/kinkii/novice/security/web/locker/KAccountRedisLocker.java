@@ -35,6 +35,17 @@ public class KAccountRedisLocker extends AbstractKAccountLocker {
     }
 
     @Override
+    public void unlock(String username) {
+        try {
+            log.info("Unlock the user " + username + "!");
+            redisTemplate.delete(buildLockerKey(username));
+        } catch (Exception e) {
+            log.error("Failed to unlock the user " + username + "! - " + e.getMessage());
+        }
+
+    }
+
+    @Override
     public Boolean isLocked(String username) {
         try {
             return redisTemplate.opsForValue().get(buildLockerKey(username)) != null;
@@ -44,10 +55,6 @@ public class KAccountRedisLocker extends AbstractKAccountLocker {
         }
     }
 
-    @Override
-    public void unLock(String username) {
-
-    }
 
     private static RedisTemplate<String, Long> buildRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, Long> redisTemplate = new RedisTemplate<>();

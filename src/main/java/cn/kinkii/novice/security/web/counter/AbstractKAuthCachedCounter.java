@@ -16,27 +16,21 @@ public abstract class AbstractKAuthCachedCounter implements KAuthCounter {
     @Getter
     protected int countSeconds;
 
-    protected String lockIgnoreAccount;
-
     public AbstractKAuthCachedCounter() {
-        this(DEFAULT_COUNT_LIMIT, DEFAULT_COUNT_SECONDS,null);
+        this(DEFAULT_COUNT_LIMIT, DEFAULT_COUNT_SECONDS);
     }
 
-    public AbstractKAuthCachedCounter(int countLimit, int countSeconds,String lockIgnoreAccount) {
+    public AbstractKAuthCachedCounter(int countLimit, int countSeconds) {
         Assert.isTrue(countSeconds > 0, "Please set the proper value for the count period! - current value: " + countSeconds);
 
         this.countLimit = countLimit;
         this.countSeconds = countSeconds;
-        this.lockIgnoreAccount = lockIgnoreAccount;
     }
 
     @Override
     public void count(String countKey) throws KAuthLimitExceededException {
         Assert.notNull(countKey, "The countKey can't bu null!");
         if (this.countLimit < 0) {
-            return;
-        }
-        if (lockIgnoreAccount.indexOf(countKey) != -1) {
             return;
         }
         Long currentValue = get(countKey);

@@ -245,10 +245,12 @@ public class KAuthenticatingConfigurer {
     }
 
     private KAccountAuthProvider buildKAccountAuthProvider() {
-        KAccountAuthProvider authProvider = new KAccountAuthProvider(currentAccountService()).userCache(_context.accountCache());
-        authProvider.setPasswordEncoder(_context.passwordEncoder());
-        authProvider.locker(_context.accountLocker()).failureCounter(_context.authCounter());
-        return authProvider;
+        return new KAccountAuthProvider(currentAccountService())
+                .userCache(_context.accountCache())
+                .passwordEncoder(_context.passwordEncoder())
+                .locker(_context.accountLocker())
+                .lockSupervisor(_context.config().getAuth().getLockSupervisor())
+                .failureCounter(_context.authCounter());
     }
 
     private KCodeAuthProvider buildKCodeAuthProvider() {

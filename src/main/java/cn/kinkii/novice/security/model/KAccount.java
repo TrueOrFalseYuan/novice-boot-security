@@ -34,13 +34,14 @@ public class KAccount implements UserDetails, Principal {
     private Collection<? extends GrantedAuthority> authorities = new HashSet<>();
     @Setter
     private boolean isSupervisor = false;
-
     @Setter
     private boolean enabled = true;
     @Setter
     private boolean accountExpired = false;
     @Setter
     private boolean accountLocked = false;
+    @Setter
+    private boolean accountIgnoreLock = false;
     @Setter
     private boolean passwordExpired = false;
 
