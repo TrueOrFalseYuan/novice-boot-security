@@ -78,7 +78,8 @@ public class KAccountAuthProvider extends DaoAuthenticationProvider {
             logger.debug("The account '%s' has been locked at moment!");
             throw new KAccountLockedException(KSecurityMessageUtils.getExceptionMessage(KAccountLockedException.class));
         }
-        if (!kAccount.isAccountIgnoreLock() || (kAccount.isSupervisor() && lockSupervisor)) {
+        if ((!kAccount.isSupervisor() && !kAccount.isAccountIgnoreLock()) ||
+                (kAccount.isSupervisor() && !kAccount.isAccountIgnoreLock() && lockSupervisor)) {
             try {
                 logger.debug(String.format("The account '%s' has been auth failure %d time(s)!", accountToken.getUsername(), failureCounter.get(accountToken.getUsername())));
                 failureCounter.count(accountToken.getUsername());
