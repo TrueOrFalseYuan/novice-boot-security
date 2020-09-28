@@ -1,6 +1,7 @@
 package cn.kinkii.novice.security.web;
 
 import cn.kinkii.novice.security.model.KClient;
+import cn.kinkii.novice.security.web.utils.AuthRequestUtils;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -8,8 +9,6 @@ import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
 
 @AllArgsConstructor
 @EqualsAndHashCode
@@ -18,27 +17,10 @@ public class KClientDetails implements Serializable {
 
     private static final long serialVersionUID = -7741959334900422968L;
 
-    private static final List<String> PROXY_HEADER = Arrays.asList("X-Forwarded-For", "Proxy-Client-IP", "WL-Proxy-Client-IP");
-
-    private KClient client;
+    private final KClient client;
 
     public KClientDetails(HttpServletRequest request) {
         this.client = obtainClient(request);
-    }
-
-    private static String parseClientAddress(HttpServletRequest request) {
-        String address = null;
-        for (String header : PROXY_HEADER) {
-            if (address == null || address.length() == 0 || "unknown".equalsIgnoreCase(address)) {
-                address = request.getHeader(header);
-            } else {
-                break;
-            }
-        }
-        if (address == null || address.length() == 0 || "unknown".equalsIgnoreCase(address)) {
-            address = request.getRemoteAddr();
-        }
-        return address;
     }
 
     private static KClient obtainClient(HttpServletRequest request) {
@@ -71,7 +53,7 @@ public class KClientDetails implements Serializable {
             }
         }
 
-        return new KClient(clientId, clientType, clientVersion, parseClientAddress(request));
+        return new KClient(clientId, clientType, clientVersion, AuthRequestUtils.parseClientAddress(request));
     }
 
     public String getClientId() {
