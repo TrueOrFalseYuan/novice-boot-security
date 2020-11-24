@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 @SuppressWarnings("UnusedAssignment")
 public class KAuthenticatingConfigurer {
@@ -169,9 +170,10 @@ public class KAuthenticatingConfigurer {
         return new KLogoutSuccessHandler();
     }
 
-    @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
     protected List<LogoutHandler> buildDefaultLogoutHandlers() {
-        return Arrays.asList(new KLogoutClearCacheHandler(_context));
+        List<LogoutHandler> handlers = new ArrayList<>();
+        handlers.add(new KLogoutClearCacheHandler(_context));
+        return handlers;
     }
 
     //==============================================================================
