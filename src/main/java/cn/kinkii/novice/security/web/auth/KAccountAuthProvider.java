@@ -97,12 +97,19 @@ public class KAccountAuthProvider extends DaoAuthenticationProvider {
                 throw e;
             }
         }
-        
-        if (this.checkers != null && this.checkers.size() > 0) {
-            this.checkers.forEach(checker -> checker.check(userDetails, accountToken));
-        }
 
-        super.additionalAuthenticationChecks(userDetails, authentication);
+        boolean isPassed = false;
+        if (this.checkers != null && this.checkers.size() > 0) {
+            for (KAccountAuthChecker checker : this.checkers) {
+                isPassed = checker.check(userDetails, accountToken);
+                if (isPassed) {
+                    break;
+                }
+            }
+        }
+        if (!isPassed) {
+            super.additionalAuthenticationChecks(userDetails, authentication);
+        }
     }
 
     @SuppressWarnings("unchecked")

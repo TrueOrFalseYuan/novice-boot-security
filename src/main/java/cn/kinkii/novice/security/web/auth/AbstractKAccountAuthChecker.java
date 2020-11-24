@@ -1,9 +1,13 @@
 package cn.kinkii.novice.security.web.auth;
 
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.security.core.userdetails.UserDetails;
 
-public interface KAccountAuthChecker {
+public abstract class AbstractKAccountAuthChecker implements KAccountAuthChecker {
+
+    protected MessageSourceAccessor messages = SpringSecurityMessageSource.getAccessor();
 
     /**
      * @param userDetails user retrieved by KAccountService
@@ -15,6 +19,7 @@ public interface KAccountAuthChecker {
      * new BadCredentialsException(this.messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
      * to use default i18n message defined by spring-security
      */
-    boolean check(UserDetails userDetails, KAccountAuthToken authentication) throws AuthenticationException;
+    @Override
+    public abstract boolean check(UserDetails userDetails, KAccountAuthToken authentication) throws AuthenticationException;
 
 }
