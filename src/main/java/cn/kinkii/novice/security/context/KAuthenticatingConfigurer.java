@@ -50,6 +50,7 @@ public class KAuthenticatingConfigurer {
     //==============================================================================
     protected RememberMeServices _rememberServices = null;
     //==============================================================================
+    protected List<KAccountAuthChecker> _accountAuthCheckers;
     protected List<KAuthSuccessAdditionalHandler> _accountAuthSuccessHandlers;
     protected List<KAuthFailureAdditionalHandler> _accountAuthFailureHandlers;
     //==============================================================================
@@ -105,6 +106,12 @@ public class KAuthenticatingConfigurer {
         }
         return _accountService;
     }
+
+    public KAuthenticatingConfigurer setAccountAuthCheckers(List<KAccountAuthChecker> authCheckers) {
+        this._accountAuthCheckers = authCheckers;
+        return this;
+    }
+
 
     public KAuthenticatingConfigurer setLogoutHandlers(List<LogoutHandler> logoutHandlers) {
         this._logoutHandlers = logoutHandlers;
@@ -250,7 +257,8 @@ public class KAuthenticatingConfigurer {
                 .passwordEncoder(_context.passwordEncoder())
                 .locker(_context.accountLocker())
                 .lockSupervisor(_context.config().getAuth().getLockSupervisor())
-                .failureCounter(_context.authCounter());
+                .failureCounter(_context.authCounter())
+                .additionalCheckers(this._accountAuthCheckers);
     }
 
     private KCodeAuthProvider buildKCodeAuthProvider() {

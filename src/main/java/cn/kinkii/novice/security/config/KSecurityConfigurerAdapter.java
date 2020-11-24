@@ -3,9 +3,11 @@ package cn.kinkii.novice.security.config;
 import cn.kinkii.novice.security.context.KAuthenticatingConfig;
 import cn.kinkii.novice.security.context.KAuthenticatingConfigurer;
 import cn.kinkii.novice.security.context.KAuthenticatingContext;
+import cn.kinkii.novice.security.model.KAccount;
 import cn.kinkii.novice.security.service.KCodeService;
 import cn.kinkii.novice.security.web.access.KAccessSuccessHandler;
 import cn.kinkii.novice.security.service.KAccountService;
+import cn.kinkii.novice.security.web.auth.KAccountAuthChecker;
 import cn.kinkii.novice.security.web.auth.KAuthFailureAdditionalHandler;
 import cn.kinkii.novice.security.web.auth.KAuthSuccessAdditionalHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +71,7 @@ public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAd
     public KAuthenticatingConfigurer getConfigurerBean(@Autowired KAuthenticatingContext kAuthenticatingContext,
                                                        @Autowired AuthenticationManager authenticationManager,
                                                        @Autowired KAccountService accountService,
+                                                       @Qualifier("accountAuthCheckers") @Autowired(required = false) List<KAccountAuthChecker> accountAuthCheckers,
                                                        @Autowired(required = false) KCodeService codeService,
                                                        @Qualifier("logoutHandlers") @Autowired(required = false) List<LogoutHandler> logoutHandlers,
                                                        @Qualifier("accountSuccessHandlers") @Autowired(required = false) List<KAuthSuccessAdditionalHandler> accountSuccessHandlers,
@@ -78,6 +81,7 @@ public abstract class KSecurityConfigurerAdapter extends WebSecurityConfigurerAd
                                                        @Autowired(required = false) List<KAccessSuccessHandler> accessSuccessHandlers) {
         return new KAuthenticatingConfigurer(kAuthenticatingContext)
                 .accountService(accountService)
+                .setAccountAuthCheckers(accountAuthCheckers)
                 .codeService(codeService)
                 .setAccountAuthAdditionalHandlers(accountSuccessHandlers, accountFailureHandlers)
                 .setRefreshAuthAdditionalHandlers(refreshSuccessHandlers, refreshFailureHandlers)

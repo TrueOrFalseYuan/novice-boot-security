@@ -21,13 +21,16 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.Assert;
 
+import java.util.List;
+import java.util.function.Consumer;
+
 public class KAccountAuthProvider extends DaoAuthenticationProvider {
 
     private Logger logger = LoggerFactory.getLogger(KAccountAuthProvider.class);
 
     private KAccountLocker locker = new KAccountIgnoredLocker();
     private KAuthCounter failureCounter = new KAuthIgnoredCounter();
-
+    private List<KAccountAuthChecker> checkers;
     private boolean lockSupervisor = true;
 
     public KAccountAuthProvider(KAccountService accountService) {
@@ -62,6 +65,11 @@ public class KAccountAuthProvider extends DaoAuthenticationProvider {
         return this;
     }
 
+    public KAccountAuthProvider additionalCheckers(List<KAccountAuthChecker> checkers) {
+        this.checkers = checkers;
+        return this;
+    }
+
     @Override
     protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
         Assert.isTrue((authentication instanceof KAccountAuthToken), "The authentication should be a KAccountAuthToken!");
@@ -89,6 +97,11 @@ public class KAccountAuthProvider extends DaoAuthenticationProvider {
                 throw e;
             }
         }
+        
+        if (this.checkers != null && this.checkers.size() > 0) {
+            this.checkers.forEach(checker -> checker.check(userDetails, accountToken));
+        }
+
         super.additionalAuthenticationChecks(userDetails, authentication);
     }
 
