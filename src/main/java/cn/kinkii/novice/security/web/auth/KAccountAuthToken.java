@@ -8,27 +8,32 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
+import java.util.Map;
 
 public class KAccountAuthToken extends UsernamePasswordAuthenticationToken implements KClientContainer {
 
-  @Getter
-  @Setter
-  private KClientDetails kClientDetails;
+    @Getter
+    @Setter
+    private KClientDetails kClientDetails;
 
-  public KAccountAuthToken(String principal, String credentials) {
-    super(principal, credentials);
-  }
+    @Setter
+    @Getter
+    private Map<String, String[]> additionalParams;
 
-  public KAccountAuthToken(String principal, String credentials, Collection<? extends GrantedAuthority> authorities) {
-    super(principal, credentials, authorities);
-  }
+    public KAccountAuthToken(String principal, String credentials) {
+        super(principal, credentials);
+    }
 
-  public String getUsername() {
-    return (String) getPrincipal();
-  }
+    public KAccountAuthToken(String principal, String credentials, Collection<? extends GrantedAuthority> authorities) {
+        super(principal, credentials, authorities);
+    }
 
-  public String getPassword() {
-    return (String) getCredentials();
-  }
+    public String getUsername() {
+        return (String) getPrincipal();
+    }
+
+    public String getPassword() {
+        return (String) getCredentials();
+    }
 
 }

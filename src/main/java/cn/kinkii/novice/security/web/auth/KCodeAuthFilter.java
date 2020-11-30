@@ -8,7 +8,10 @@ import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class KCodeAuthFilter extends KAuthenticatingFilter<KCodeAuthToken> {
 
@@ -31,7 +34,9 @@ public class KCodeAuthFilter extends KAuthenticatingFilter<KCodeAuthToken> {
         } else {
             String code = this.obtainCode(request);
             if (StringUtils.hasText(code)) {
-                return new KCodeAuthToken(this.obtainCode(request));
+                KCodeAuthToken codeAuthToken = new KCodeAuthToken(code);
+                codeAuthToken.setAdditionalParams(this.obtainAdditionalParams(request));
+                return codeAuthToken;
             }
             throw new AuthenticationServiceException("Failed to get the authentication code!");
         }
@@ -52,4 +57,15 @@ public class KCodeAuthFilter extends KAuthenticatingFilter<KCodeAuthToken> {
         }
         return code.trim();
     }
+
+    private Map<String, String[]> obtainAdditionalParams(HttpServletRequest request) {
+        Map<String, String[]> additionalParams = new HashMap<>();
+        for (String key : request.getParameterMap().keySet()) {
+            if (!this.codeParameter.equals(key)) {
+                additionalParams.put(key, request.getParameterMap().get(key));
+            }
+        }
+        return additionalParams;
+    }
+
 }

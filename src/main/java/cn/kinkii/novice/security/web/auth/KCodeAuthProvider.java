@@ -50,10 +50,7 @@ public class KCodeAuthProvider implements AuthenticationProvider, InitializingBe
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         Assert.isInstanceOf(KCodeAuthToken.class, authentication, "The authentication should be a KCodeAuthToken!");
 
-        // Determine code
-        String code = (authentication.getPrincipal() == null) ? "" : authentication.getName();
-
-        UserDetails user = retrieveUser(code);
+        UserDetails user = retrieveUser((KCodeAuthToken) authentication);
         authenticationChecks.check(user);
 
         return createSuccessAuthentication(user, authentication);
@@ -69,9 +66,11 @@ public class KCodeAuthProvider implements AuthenticationProvider, InitializingBe
         return new KAuthenticatingSuccessToken(kAccount, kAccount.getAuthorities(), kCodeAuthToken);
     }
 
-    protected final UserDetails retrieveUser(String code) throws AuthenticationException {
+    protected final UserDetails retrieveUser(KCodeAuthToken codeAuthToken) throws AuthenticationException {
         try {
-            UserDetails loadedUser = this.getCodeService().exchangeUserByCode(code);
+            // Determine code
+            String code = (codeAuthToken.getPrincipal() == null) ? "" : codeAuthToken.getName();
+            UserDetails loadedUser = this.getCodeService().exchangeUserByCode(code, codeAuthToken.getAdditionalParams());
             if (loadedUser == null) {
                 throw new InternalAuthenticationServiceException("KCodeService returned null, which is an interface contract violation");
             }

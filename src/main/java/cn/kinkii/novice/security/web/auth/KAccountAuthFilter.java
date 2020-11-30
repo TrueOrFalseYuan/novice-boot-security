@@ -8,6 +8,8 @@ import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class KAccountAuthFilter extends KAuthenticatingFilter<KAccountAuthToken> {
@@ -32,7 +34,9 @@ public class KAccountAuthFilter extends KAuthenticatingFilter<KAccountAuthToken>
         if (this.postOnly && !request.getMethod().equals("POST")) {
             throw new AuthenticationServiceException("Authentication method not supported: " + request.getMethod());
         } else {
-            return new KAccountAuthToken(this.obtainUsername(request), this.obtainPassword(request));
+            KAccountAuthToken accountAuthToken = new KAccountAuthToken(this.obtainUsername(request), this.obtainPassword(request));
+            accountAuthToken.setAdditionalParams(this.obtainAdditionalParams(request));
+            return accountAuthToken;
         }
     }
 
@@ -60,4 +64,13 @@ public class KAccountAuthFilter extends KAuthenticatingFilter<KAccountAuthToken>
         return password;
     }
 
+    private Map<String, String[]> obtainAdditionalParams(HttpServletRequest request) {
+        Map<String, String[]> additionalParams = new HashMap<>();
+        for (String key : request.getParameterMap().keySet()) {
+            if (!this.usernameParameter.equals(key) || !this.passwordParameter.equals(key)) {
+                additionalParams.put(key, request.getParameterMap().get(key));
+            }
+        }
+        return additionalParams;
+    }
 }

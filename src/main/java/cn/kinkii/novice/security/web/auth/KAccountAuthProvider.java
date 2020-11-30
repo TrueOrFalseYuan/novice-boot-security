@@ -22,11 +22,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.Assert;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 public class KAccountAuthProvider extends DaoAuthenticationProvider {
 
-    private Logger logger = LoggerFactory.getLogger(KAccountAuthProvider.class);
+    private final Logger logger = LoggerFactory.getLogger(KAccountAuthProvider.class);
 
     private KAccountLocker locker = new KAccountIgnoredLocker();
     private KAuthCounter failureCounter = new KAuthIgnoredCounter();
@@ -112,7 +111,6 @@ public class KAccountAuthProvider extends DaoAuthenticationProvider {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected Authentication createSuccessAuthentication(Object principal, Authentication authentication, UserDetails user) {
         Assert.isTrue((principal instanceof KAccount), "The principal should be a KAccount!");
