@@ -17,8 +17,9 @@ import java.io.OutputStream;
 public class AuthResponseUtils {
 
     private static final String AUTH_FAILURE_DETAIL = "detail";
+    private static final String AUTH_FAILURE_ADDITION = "addition";
 
-    private static ObjectMapper globalObjectMapper = new ObjectMapper();
+    private static final ObjectMapper globalObjectMapper = new ObjectMapper();
 
     static {
         globalObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -65,12 +66,13 @@ public class AuthResponseUtils {
 
     private static KAuthResponse buildErrorResponse(Throwable failed) {
         Throwable cause = failed;
-        if (failed instanceof KAuthException && ((KAuthException) cause).getDetail() != null) {
-            return KAuthResponse.build(KSecurityMessageUtils.getErrorCode(cause), KSecurityMessageUtils.getErrorMessage(cause)).addValue(AUTH_FAILURE_DETAIL, ((KAuthException) cause).getDetail());
-        } else if (failed instanceof InternalAuthenticationServiceException && failed.getCause() != null) {
+        if (failed instanceof InternalAuthenticationServiceException && failed.getCause() != null) {
             cause = failed.getCause();
         }
-        return KAuthResponse.build(KSecurityMessageUtils.getErrorCode(cause), KSecurityMessageUtils.getErrorMessage(cause)).addValue(AUTH_FAILURE_DETAIL, cause.getLocalizedMessage());
-
+        KAuthResponse response = KAuthResponse.build(KSecurityMessageUtils.getErrorCode(cause), KSecurityMessageUtils.getErrorMessage(cause)).addValue(AUTH_FAILURE_DETAIL, cause.getLocalizedMessage());
+        if (failed instanceof KAuthException && ((KAuthException) cause).getDetail() != null) {
+            response.addValue(AUTH_FAILURE_ADDITION, ((KAuthException) cause).getDetail());
+        }
+        return response;
     }
 }
