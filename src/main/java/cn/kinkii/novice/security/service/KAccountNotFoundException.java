@@ -8,6 +8,10 @@ public class KAccountNotFoundException extends KAuthException {
         super(msg, detail, t);
     }
 
+    public KAccountNotFoundException(String msg, Object detail) {
+        super(msg, detail);
+    }
+
     public KAccountNotFoundException(String msg, Throwable t) {
         super(msg, t);
     }

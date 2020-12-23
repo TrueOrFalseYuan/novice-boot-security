@@ -13,6 +13,11 @@ public class KAuthException extends AuthenticationException {
         this.detail = detail;
     }
 
+    public KAuthException(String msg, Object detail) {
+        super(msg);
+        this.detail = detail;
+    }
+
     public KAuthException(String msg, Throwable t) {
         super(msg, t);
     }
