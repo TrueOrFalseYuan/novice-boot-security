@@ -1,5 +1,6 @@
 package cn.kinkii.novice.security.web.utils;
 
+import cn.kinkii.novice.security.core.KAuthException;
 import cn.kinkii.novice.security.i18n.KSecurityMessageUtils;
 import cn.kinkii.novice.security.web.response.KAuthResponse;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -64,9 +65,12 @@ public class AuthResponseUtils {
 
     private static KAuthResponse buildErrorResponse(Throwable failed) {
         Throwable cause = failed;
-        if (failed instanceof InternalAuthenticationServiceException && failed.getCause() != null) {
+        if (failed instanceof KAuthException && ((KAuthException) cause).getDetail() != null) {
+            return KAuthResponse.build(KSecurityMessageUtils.getErrorCode(cause), KSecurityMessageUtils.getErrorMessage(cause)).addValue(AUTH_FAILURE_DETAIL, ((KAuthException) cause).getDetail());
+        } else if (failed instanceof InternalAuthenticationServiceException && failed.getCause() != null) {
             cause = failed.getCause();
         }
         return KAuthResponse.build(KSecurityMessageUtils.getErrorCode(cause), KSecurityMessageUtils.getErrorMessage(cause)).addValue(AUTH_FAILURE_DETAIL, cause.getLocalizedMessage());
+
     }
 }
