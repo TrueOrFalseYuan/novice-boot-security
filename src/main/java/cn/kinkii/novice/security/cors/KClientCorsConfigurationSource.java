@@ -37,7 +37,7 @@ public class KClientCorsConfigurationSource implements CorsConfigurationSource {
         cc.setAllowedHeaders(DEFAULT_ALLOWED_HEADERS);
         cc.setAllowedMethods(DEFAULT_ALLOWED_METHODS);
         cc.setAllowedOriginPatterns(corsConfig.getAllowedOrigins());
-        cc.setAllowCredentials(true);
+//        cc.setAllowCredentials(true);
         cc.setMaxAge(DEFAULT_MAX_AGE);
         return cc;
     }

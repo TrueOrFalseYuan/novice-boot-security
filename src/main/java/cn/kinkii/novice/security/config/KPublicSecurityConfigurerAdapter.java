@@ -16,7 +16,7 @@ public class KPublicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapt
       cc.setAllowedHeaders(Collections.singletonList(CorsConfiguration.ALL));
       cc.setAllowedMethods(Collections.singletonList(CorsConfiguration.ALL));
       cc.setAllowedOrigins(Collections.singletonList(CorsConfiguration.ALL));
-      cc.setAllowCredentials(true);
+//      cc.setAllowCredentials(true);
       cc.setMaxAge(3600L);
       return cc;
     }).and().csrf().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests().anyRequest().permitAll();
