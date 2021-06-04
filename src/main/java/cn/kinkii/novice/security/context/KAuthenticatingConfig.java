@@ -10,6 +10,8 @@ import cn.kinkii.novice.security.web.auth.DefaultKAccountAuthConfig;
 import cn.kinkii.novice.security.web.auth.KAccountAuthConfig;
 import cn.kinkii.novice.security.web.cache.DefaultKAccountCacheConfig;
 import cn.kinkii.novice.security.web.cache.KAccountCacheConfig;
+import cn.kinkii.novice.security.web.locale.DefaultKLocaleConfig;
+import cn.kinkii.novice.security.web.locale.KLocaleConfig;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -44,5 +46,7 @@ public class KAuthenticatingConfig {
     private boolean supervisorGranted = true; // grant supervisor all permission
     private boolean anonymousAllowed = false; // allow anonymous user to access
     private List<String> publicUrls = new ArrayList<>();
+
+    private KLocaleConfig locale = new DefaultKLocaleConfig();
 
 }

@@ -2,18 +2,20 @@ package cn.kinkii.novice.security.context;
 
 import cn.kinkii.novice.security.access.KUrlAccessDecisionVoter;
 import cn.kinkii.novice.security.cors.KClientCorsConfigurationSource;
+import cn.kinkii.novice.security.service.KAccountService;
+import cn.kinkii.novice.security.service.KCodeService;
+import cn.kinkii.novice.security.web.KAccessDeniedHandler;
+import cn.kinkii.novice.security.web.KAuthenticationEntryPoint;
+import cn.kinkii.novice.security.web.access.KAccessSuccessHandler;
+import cn.kinkii.novice.security.web.access.KAccessTokenProvider;
+import cn.kinkii.novice.security.web.auth.*;
+import cn.kinkii.novice.security.web.locale.KLocaleContextRequestFilter;
+import cn.kinkii.novice.security.web.locale.KLocaleContextResolver;
+import cn.kinkii.novice.security.web.logout.KLogoutClearCacheHandler;
 import cn.kinkii.novice.security.web.logout.KLogoutFilter;
 import cn.kinkii.novice.security.web.logout.KLogoutSuccessHandler;
 import cn.kinkii.novice.security.web.rememberme.RememberKClientAuthFilter;
 import cn.kinkii.novice.security.web.rememberme.RememberKClientServices;
-import cn.kinkii.novice.security.service.KCodeService;
-import cn.kinkii.novice.security.web.access.KAccessSuccessHandler;
-import cn.kinkii.novice.security.service.KAccountService;
-import cn.kinkii.novice.security.web.KAccessDeniedHandler;
-import cn.kinkii.novice.security.web.KAuthenticationEntryPoint;
-import cn.kinkii.novice.security.web.access.KAccessTokenProvider;
-import cn.kinkii.novice.security.web.auth.*;
-import cn.kinkii.novice.security.web.logout.KLogoutClearCacheHandler;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.access.AccessDecisionManager;
@@ -35,9 +37,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import javax.servlet.Filter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 @SuppressWarnings("UnusedAssignment")
 public class KAuthenticatingConfigurer {
@@ -182,6 +182,7 @@ public class KAuthenticatingConfigurer {
     protected List<KFilter> buildFilters() {
         List<KFilter> filters = new ArrayList<>();
 
+        filters.add(new KFilter(buildKLocaleContextRequestFilter(), KFilter.Position.BEFORE, LogoutFilter.class));
         filters.add(new KFilter(buildKLogoutFilter(), KFilter.Position.AT, LogoutFilter.class));
         if (_context.config().getAuthByAccount()) {
             filters.add(new KFilter(buildKAccountAuthFilter(), KFilter.Position.AFTER, AbstractPreAuthenticatedProcessingFilter.class));
@@ -232,6 +233,10 @@ public class KAuthenticatingConfigurer {
             handlers.addAll(_logoutHandlers);
         }
         return new KLogoutFilter(buildLogoutSuccessHandler(), handlers.toArray(new LogoutHandler[0]));
+    }
+
+    private KLocaleContextRequestFilter buildKLocaleContextRequestFilter() {
+        return new KLocaleContextRequestFilter(new KLocaleContextResolver(_context._config.getLocale()));
     }
 
     //==============================================================================

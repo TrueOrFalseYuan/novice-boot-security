@@ -29,7 +29,7 @@ import java.io.IOException;
 @Slf4j
 public class KLogoutFilter extends GenericFilterBean {
 
-    private static RequestMatcher LOGOUT_MATCHER = new AntPathRequestMatcher("/auth/logout");
+    private static final RequestMatcher LOGOUT_MATCHER = new AntPathRequestMatcher("/auth/logout");
 
     private static boolean requestLogout(HttpServletRequest request) {
         return LOGOUT_MATCHER.matches(request);
