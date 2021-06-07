@@ -3,7 +3,6 @@ package cn.kinkii.novice.security.web.locale;
 import org.springframework.context.i18n.LocaleContext;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.i18n.AbstractLocaleContextResolver;
-import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,12 +23,7 @@ public class KLocaleContextResolver extends AbstractLocaleContextResolver {
             String localeValue = request.getParameter(localeConfig.getLocaleParam());
             Locale locale = KLocaleContextResolver.this.determineDefaultLocale(request);
             if (StringUtils.hasText(localeValue)) {
-                String[] locales = localeValue.split(KLocaleConfig.LOCALE_SPLITTER);
-                if (locales.length > 1) {
-                    locale = new Locale(locales[0], locales[1]);
-                } else {
-                    locale = new Locale(locales[0]);
-                }
+                locale = StringUtils.parseLocale(localeValue);
             }
             return locale;
         };
