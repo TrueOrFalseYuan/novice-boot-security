@@ -9,7 +9,7 @@ import org.springframework.security.core.AuthenticationException;
 @Slf4j
 public class KSecurityMessageUtils {
 
-    private static MessageSourceAccessor messages = KSecurityMessageSource.getAccessor();
+    private static final MessageSourceAccessor messages = KSecurityMessageSource.getAccessor();
 
     private static final String EXCEPTION_MESSAGE = "k.security.exception.message";
 
